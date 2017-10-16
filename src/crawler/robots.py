@@ -1,8 +1,9 @@
-import urllib
 from urllib import parse
-from urllib import robotparser
 from config import useragent
+from reppy.robots import Robots
 
+class RobotsProviderException(BaseException):
+    pass
 
 class RobotsProvider:
     _robots = {}
@@ -31,9 +32,10 @@ class RobotsProvider:
         """
 
         if not RobotsProvider._is_page_in_domain(page_url, domain_url):
-            raise "page \"{}\" does not belong to domain \"{}\"".format(domain_url, page_url)
+            # return False
+            raise RobotsProviderException("page \"{}\" does not belong to domain \"{}\"".format(page_url, domain_url))
         robots_parser = RobotsProvider._get_robots_parser(domain_url)
-        return robots_parser.can_fetch(useragent, page_url)
+        return robots_parser.allowed(page_url, useragent)
 
     @staticmethod
     def _is_page_in_domain(page_url: str, domain_url: str) -> bool:
@@ -49,10 +51,10 @@ class RobotsProvider:
         return page_url.find(domain_url) != -1
 
     @staticmethod
-    def _get_robots_parser(domain_url: str) -> robotparser.RobotFileParser:
+    def _get_robots_parser(domain_url: str) -> Robots:
         _robots = RobotsProvider._robots
         if not domain_url in _robots:
             robots_txt_url = domain_url + "/robots.txt"
-            _robots[domain_url] = robotparser.RobotFileParser(robots_txt_url)
-        _robots[domain_url].read()
+            parser = Robots.fetch(robots_txt_url)
+            _robots[domain_url] = parser
         return _robots.get(domain_url, None)

@@ -13,7 +13,6 @@ pages = [
 ]
 
 expected_result = [True, False]
-
 for page_url, expected in zip(pages, expected_result):
     result = RobotsProvider.can_be_crawled(domain_url, page_url)
     print(page_url, result)
