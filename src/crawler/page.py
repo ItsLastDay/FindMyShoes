@@ -15,7 +15,7 @@ class RobotsProvider:
             `domain_url`: URL, e.g. "ya.ru"
 
         Returns:
-            integer - required delay in milliseconds. Defaults to 1 second.
+            floating point number - required delay in seconds. Defaults to 1 second.
         """
         pass
 
