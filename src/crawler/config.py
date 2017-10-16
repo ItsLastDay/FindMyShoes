@@ -1,0 +1,1 @@
+useragent = "findmyshoes_robot"
