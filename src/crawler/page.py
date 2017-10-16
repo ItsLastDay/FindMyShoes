@@ -5,10 +5,8 @@ class RobotsProvider:
     """Object that knows about "robots.txt" content of domains
     """
 
-    def __init__(self):
-        pass
-
-    def get_robots_delay(self, domain_url):
+    @staticmethod
+    def get_robots_delay(domain_url):
         """Get delay from "robots.txt" of `domain_url`
 
         Args:
@@ -19,7 +17,8 @@ class RobotsProvider:
         """
         pass
 
-    def get_robots_banned_regexp(self, domain_url):
+    @staticmethod
+    def get_robots_banned_regexp(domain_url):
         """Get list of subdomains/pages that should not be crawled.
 
         Args:
@@ -33,8 +32,14 @@ class RobotsProvider:
         """
         pass
 
-    def _get_robots_info(self, domain_url):
-        """Private function that parses `domain_url`-s "robots.txt" and stores the result.
+    @staticmethod
+    def can_be_crawled(domain_url, page_url):
+        """
+        Args:
+            `domain_url`: URL, e.g. "ya.ru". The domain of interest.
+            `page_url`: page URL.
+        Returns:
+            if page with given URL allowed to be crawled.
         """
         pass
 
@@ -46,15 +51,6 @@ class Page:
         `self.url` should point to this URL.
         """
         self.url = url
-
-    def can_be_crawled(self):
-        """Checks that domain of this page allows crawling it.
-
-        Analyzes "robots.txt" to do it.
-
-        Returns: boolean.
-        """
-        pass
 
     def can_be_stored(self):
         """Checks that we are allowed to store this page.
