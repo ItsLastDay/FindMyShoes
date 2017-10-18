@@ -1,4 +1,7 @@
 import requests
+from logging import getLogger
+
+robots_logger = getLogger("robots")
 
 
 class URLGetter:

@@ -1,14 +1,10 @@
-# Andrey
-
+from typing import Optional
 from urllib import parse
-import datetime
+from datetime import datetime
 from collections import namedtuple
 from math import inf
-from typing import Optional
-import logging
-from config import URLGetter
 
-robots_logger = logging.getLogger("robots")
+from robots.config import robots_logger, URLGetter
 
 
 class RobotsParserException(BaseException):
@@ -35,7 +31,8 @@ class MemberGroupData:
         if allow and len(path) == 0:
             return
         template = MemberGroupData._get_template_split(path)
-        self.lines.append(MemberGroupData.Entry(allow, template))
+        new_entry = MemberGroupData.Entry(allow, template)
+        self.lines.append(new_entry)
 
     def allowed(self, url: str):
         # TODO optimize to avoid sorting lines on each query.
@@ -112,6 +109,8 @@ class RobotsParser:
         self._data = {}
         if not deferred_read:
             self.read()
+        self._url = None
+        self._mtime = None
 
     def set_url(self, robots_url):
         """Sets the URL referring to a robots.txt file."""
@@ -162,7 +161,7 @@ class RobotsParser:
 
     def modified(self):
         """Sets the time the robots.txt file was last fetched to the current time."""
-        self._mtime = datetime.datetime.now().time()
+        self._mtime = datetime.now().time()
 
     def crawl_delay(self, useragent: str) -> Optional[float]:
         """Returns the value of the Crawl-delay parameter from robots.txt for the useragent in question.
@@ -172,7 +171,7 @@ class RobotsParser:
         assert member_group_data is not None
         return member_group_data.get_other('crawl-delay')
 
-    def request_rate(self, useragent) -> Optional[float]:
+    def request_rate(self, useragent: str) -> Optional[float]:
         """Returns the contents of the Request-rate parameter from robots.txt
         in the form of a namedtuple() (requests, seconds).
         If there is no such parameter or it doesn’t apply to the useragent specified
@@ -195,66 +194,3 @@ class RobotsParser:
             if useragent.startswith(name) or name == "*":
                 return self._data[name]
         return None
-
-
-class RobotsProviderException(BaseException):
-    pass
-
-
-class RobotsProvider:
-    _robots = {}
-
-    @staticmethod
-    def get_robots_delay(domain_url: str):
-        """Get delay from "robots.txt" of `domain_url`
-
-        Args:
-            `domain_url`: URL, e.g. "ya.ru"
-
-        Returns:
-            floating point number - required delay in seconds. Defaults to 1 second.
-        """
-        robots_parser = RobotsProvider._get_robots_parser(domain_url)
-        delay = robots_parser.crawl_delay(URLGetter.USERAGENT)
-        if delay is None:
-            return 1
-        else:
-            return delay
-
-    @staticmethod
-    def can_be_crawled(domain_url: str, page_url: str) -> bool:
-        """
-        Args:
-            `domain_url`: URL, e.g. "ya.ru". The domain of interest.
-            `page_url`: page URL.
-        Returns:
-            if page with given URL allowed to be crawled.
-        """
-
-        if not RobotsProvider._is_page_in_domain(page_url, domain_url):
-            # return False
-            raise RobotsProviderException("page \"{}\" does not belong to domain \"{}\"".format(page_url, domain_url))
-        robots_parser = RobotsProvider._get_robots_parser(domain_url)
-        return robots_parser.can_fetch(URLGetter.USERAGENT, page_url)
-
-    @staticmethod
-    def _is_page_in_domain(page_url: str, domain_url: str) -> bool:
-        def _simplified_url(url: str) -> str:
-            # netloc + path
-            netloc, path = parse.urlsplit(url)[1:3]
-            if netloc[:3] == "www":
-                netloc = netloc[3:]
-            return netloc + path
-
-        domain_url = _simplified_url(domain_url)
-        page_url = _simplified_url(page_url)
-        return page_url.find(domain_url) != -1
-
-    @staticmethod
-    def _get_robots_parser(domain_url: str) -> RobotsParser:
-        _robots = RobotsProvider._robots
-        if domain_url not in _robots:
-            robots_txt_url = domain_url + "/robots.txt"
-            parser = RobotsParser(robots_txt_url)
-            _robots[domain_url] = parser
-        return _robots.get(domain_url, None)
