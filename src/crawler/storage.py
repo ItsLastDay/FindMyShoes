@@ -1,9 +1,10 @@
-import httplib2
+import hashlib
+import json
+import io
 
-from apiclient import discovery
-from oauth2client import client
-from oauth2client import tools
-from oauth2client.file import Storage as CredStorage
+from apiclient.http import MediaIoBaseUpload
+
+from gdrive_client import get_gdrive_service
 
 
 # Code parts borrowed from
@@ -26,24 +27,7 @@ class Storage:
         Returns: `Storage` object.
         """
         ret = Storage()
-
-        SCOPES = 'https://www.googleapis.com/auth/drive'
-        APPLICATION_NAME = 'FindMyShoes'
-
-        credential_path = "./api_creds.json"
-        store = CredStorage(credential_path)
-        credentials = store.get()
-
-        if not credentials or credentials.invalid:
-            flow = client.flow_from_clientsecrets('./client_secret.json', SCOPES)
-            flow.user_agent = APPLICATION_NAME
-            credentials = tools.run_flow(flow, store, None)
-            print('Storing credentials to ' + credential_path)
-
-        http = credentials.authorize(httplib2.Http())
-        gdrive_service = discovery.build('drive', 'v3', http=http)
-
-        ret.service = gdrive_service
+        ret.service = get_gdrive_service()
 
         return ret
 
@@ -62,8 +46,49 @@ class Storage:
         but separate from content: 
             URL 
             size of `page_content`
+            path to file
 
         Returns: nothing.
         """
-        pass
+        content_hash = hashlib.md5(page_content.encode('utf-8')).hexdigest()
 
+        metadata = dict(
+            path=content_hash,
+            url=page_url,
+            size=len(page_content)
+        )
+        
+
+        # Save metadata only if content was not seen before.
+        if self._save_file_if_not_exist(content_hash, page_content):
+            self._save_file_if_not_exist('{}.meta'.format(page_url), json.dumps(metadata, sort_keys=True))
+            
+
+    def _save_file_if_not_exist(self, filename, content, mimetype='text/html'):
+        """
+        Returns: boolean flag "did we save this file?".
+        """
+        # https://developers.google.com/drive/v3/web/search-parameters
+        already_has_file = self.service.files().list(
+                q='name = "{}"'.format(filename),
+                pageSize=1,
+                fields='files(id, name)'
+            ).execute()
+        if already_has_file.get('files', []):
+            # TODO: switch to logging
+            print(already_has_file)
+            return False
+
+        # https://developers.google.com/api-client-library/python/guide/media_upload
+        media = MediaIoBaseUpload(
+                io.StringIO(content),
+                mimetype=mimetype
+            )
+
+        # https://developers.google.com/drive/v3/web/manage-uploads
+        self.service.files().create(
+                body=dict(name=filename),
+                media_body=media
+            ).execute()
+
+        return True
