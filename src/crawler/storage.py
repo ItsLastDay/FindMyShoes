@@ -1,10 +1,12 @@
 import hashlib
 import json
-import io
+from logging import getLogger
+import base64
 
-from apiclient.http import MediaIoBaseUpload
+import gdrive_client
 
-from gdrive_client import get_gdrive_service
+
+storage_logger = getLogger("storage")
 
 
 # Code parts borrowed from
@@ -26,7 +28,11 @@ class Storage:
         Returns: `Storage` object.
         """
         ret = Storage()
-        ret.service = get_gdrive_service()
+        ret._service = gdrive_client.get_gdrive_service()
+
+        ret._meta_folder_id = ret._service.files().list(q='name="metainfo"',
+                fields='files(id)').execute()['files'][0]['id']
+        ret._pages_folder_id = ret._service.files().list(q='name="pages"',fields='files(id)').execute()['files'][0]['id']
 
         return ret
 
@@ -57,37 +63,20 @@ class Storage:
             size=len(page_content)
         )
         
+        page_content = base64.b64encode(page_content.encode('utf-8')).decode('latin-1')        
 
         # Save metadata only if content was not seen before.
-        if self._save_file_if_not_exist(content_hash, page_content):
-            self._save_file_if_not_exist('{}.meta'.format(page_url), json.dumps(metadata, sort_keys=True))
+        if self._save_file_if_not_exist('{}'.format(content_hash), page_content, parents=[self._pages_folder_id]):
+            self._save_file_if_not_exist('{}.meta'.format(page_url), json.dumps(metadata, sort_keys=True), parents=[self._meta_folder_id])
             
 
-    def _save_file_if_not_exist(self, filename, content, mimetype='text/html'):
+    def _save_file_if_not_exist(self, filename, content, mimetype='text/html', parents=None):
         """
         Returns: boolean flag "did we save this file?".
         """
-        # https://developers.google.com/drive/v3/web/search-parameters
-        already_has_file = self.service.files().list(
-                q='name = "{}"'.format(filename),
-                pageSize=1,
-                fields='files(id, name)'
-            ).execute()
-        if already_has_file.get('files', []):
-            # TODO: switch to logging
-            print(already_has_file)
+        if gdrive_client.is_file_exists(self._service, filename):
+            storage_logger.info("File {} already exist".format(filename))
             return False
 
-        # https://developers.google.com/api-client-library/python/guide/media_upload
-        media = MediaIoBaseUpload(
-                io.StringIO(content),
-                mimetype=mimetype
-            )
-
-        # https://developers.google.com/drive/v3/web/manage-uploads
-        self.service.files().create(
-                body=dict(name=filename),
-                media_body=media
-            ).execute()
-
+        gdrive_client.save_file(self._service, filename, content, mimetype, parents=parents)
         return True

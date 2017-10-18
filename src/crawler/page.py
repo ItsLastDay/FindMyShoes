@@ -45,6 +45,7 @@ class Page:
 
         Returns: nothing.
         """
+        page_logger.debug('Fetching page {}'.format(self._url))
         response = URLGetter.get_response(self._url)
         if response.status_code != 200:
             page_logger.info("Failed to fetch page {} with status code {}".format(self._url, response.status_code))
@@ -63,7 +64,7 @@ class Page:
         if self._soup is None or self._meta_tags_content_has_property("nofollow"):
             return []
 
-        return list(map(lambda link: link.get('href'), self._soup.find_all('a')))
+        return list(map(lambda link: Page(link.get('href')), self._soup.find_all('a')))
 
     def get_cleaned_response(self) -> str:
         """Returns text: HTML content of the page.
@@ -74,7 +75,7 @@ class Page:
         Returns:
             str - content of <body> HTML tag.
         """
-        return self._soup.body
+        return self._soup.body.text
 
     def mtime(self) -> datetime:
         """Returns the time the page was last fetched.
