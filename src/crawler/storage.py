@@ -15,7 +15,6 @@ class Storage:
     def __init__(self):
         pass
 
-
     @staticmethod
     def create_storage():
         """Abstract out call of the __init__ from users.
