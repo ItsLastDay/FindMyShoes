@@ -216,7 +216,11 @@ class RobotsProvider:
             floating point number - required delay in seconds. Defaults to 1 second.
         """
         robots_parser = RobotsProvider._get_robots_parser(domain_url)
-        pass
+        delay = robots_parser.crawl_delay(useragent)
+        if delay is None:
+            return 1
+        else:
+            return delay
 
     @staticmethod
     def can_be_crawled(domain_url: str, page_url: str) -> bool:
