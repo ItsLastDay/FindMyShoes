@@ -85,7 +85,7 @@ class MemberGroupData:
             path = path[:-1]
         ampersand_pos = path.find('$')
         if ampersand_pos not in (-1, len(path) - 1):
-            raise RobotsParserException("Error while parsing template \"{}\" for line \"{}\"".format(path, line))
+            raise RobotsParserException("Error while parsing template for line \"{}\"".format(path))
 
         if path[-1] != '$':
             path += '*'

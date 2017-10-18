@@ -36,7 +36,9 @@ and they lived at the bottom of a well.</p>
 
 html_results = [
     (simple_html, PageTestResult(True, [])),
-    (html_doc, PageTestResult(False, ['http://example.com/elsie', 'http://example.com/lacie', 'http://example.com/tillie']))
+    (html_doc, PageTestResult(False, ['http://example.com/elsie',
+                                      'http://example.com/lacie',
+                                      'http://example.com/tillie']))
 ]
 
 for i, (html_text, page_test_result) in enumerate(html_results):
