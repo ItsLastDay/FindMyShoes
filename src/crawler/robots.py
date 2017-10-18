@@ -1,13 +1,12 @@
 # Andrey
 
 from urllib import parse
-import requests
 import datetime
 from collections import namedtuple
 from math import inf
 from typing import Optional
 import logging
-from config import useragent
+from config import URLGetter
 
 robots_logger = logging.getLogger("robots")
 
@@ -118,10 +117,9 @@ class RobotsParser:
         """Sets the URL referring to a robots.txt file."""
         self._url = robots_url
 
-    def read(self, params=None, **kwargs):
+    def read(self):
         """Reads the robots.txt URL and feeds it to the parser."""
-        response = requests.get(self._url, params, **kwargs)
-        lines = response.text.split('\n')
+        lines = URLGetter.get_lines(self._url)
         self.parse(lines)
         self.modified()
 
@@ -138,7 +136,7 @@ class RobotsParser:
             param = param.lower()
             value = value.strip()
             if param == 'user-agent':
-                if not value in self._data:
+                if value not in self._data:
                     self._data[value] = MemberGroupData(value)
                 member_group_data = self._data[value]
             elif param == 'disallow' or param == 'allow':
@@ -151,7 +149,8 @@ class RobotsParser:
                 robots_logger.info("param {} is ignored in line {}".format(param, l))
 
     def can_fetch(self, useragent, url: str) -> bool:
-        """Returns True if the useragent is allowed to fetch the url according to the rules contained in the parsed robots.txt file."""
+        """Returns True if the useragent is allowed to fetch the url
+        according to the rules contained in the parsed robots.txt file."""
         member_group_data = self._member_group_data(useragent)
         assert member_group_data is not None
         return member_group_data.allowed(url)
@@ -216,7 +215,7 @@ class RobotsProvider:
             floating point number - required delay in seconds. Defaults to 1 second.
         """
         robots_parser = RobotsProvider._get_robots_parser(domain_url)
-        delay = robots_parser.crawl_delay(useragent)
+        delay = robots_parser.crawl_delay(URLGetter.USERAGENT)
         if delay is None:
             return 1
         else:
@@ -236,7 +235,7 @@ class RobotsProvider:
             # return False
             raise RobotsProviderException("page \"{}\" does not belong to domain \"{}\"".format(page_url, domain_url))
         robots_parser = RobotsProvider._get_robots_parser(domain_url)
-        return robots_parser.can_fetch(useragent, page_url)
+        return robots_parser.can_fetch(URLGetter.USERAGENT, page_url)
 
     @staticmethod
     def _is_page_in_domain(page_url: str, domain_url: str) -> bool:
@@ -254,7 +253,7 @@ class RobotsProvider:
     @staticmethod
     def _get_robots_parser(domain_url: str) -> RobotsParser:
         _robots = RobotsProvider._robots
-        if not domain_url in _robots:
+        if domain_url not in _robots:
             robots_txt_url = domain_url + "/robots.txt"
             parser = RobotsParser(robots_txt_url)
             _robots[domain_url] = parser

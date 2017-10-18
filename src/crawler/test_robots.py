@@ -11,7 +11,7 @@ domain_pages = {
             ("https://www.google.com/?hl=", True),
             ("https://www.google.com/?hl=123", True),
             ("https://www.google.com/?hl=123&", False),
-            ("https://www.google.com/?hL=123&", False) # /?
+            ("https://www.google.com/?hL=123&", False)  # /?
         ]
 }
 
