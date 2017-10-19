@@ -1,9 +1,9 @@
+from robots import RobotsProvider
+from page import Page
 import logging
 
 logging.basicConfig(filename='./logs/test_robots_debug.log', level=logging.DEBUG, filemode='w')
 
-from robots import RobotsProvider
-from page import Page
 
 domain_pages = {
     "https://respect-shoes.ru": ([

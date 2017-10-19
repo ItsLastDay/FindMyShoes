@@ -1,10 +1,9 @@
-import logging
-
-logging.basicConfig(filename='./logs/test_page_debug.log', level=logging.DEBUG, filemode='w')
-
 from page import Page
 from bs4 import BeautifulSoup
 from collections import namedtuple
+import logging
+
+logging.basicConfig(filename='./logs/test_page_debug.log', level=logging.DEBUG, filemode='w')
 
 PageTestResult = namedtuple('PageTestResult', ['indexable', 'children'])
 
@@ -47,7 +46,7 @@ html_results = [
 
 for i, (html_text, page_test_result) in enumerate(html_results):
     page = Page('http://example.com', '/index.html')
-    page._soup = BeautifulSoup(html_text, 'html.parser')
+    page._soup = BeautifulSoup(html_text, 'lxml')
     page.modified()
     expected = "should be stored" if page_test_result.indexable else "should not be stored"
     if page.can_be_stored() != page_test_result.indexable:
@@ -56,7 +55,7 @@ for i, (html_text, page_test_result) in enumerate(html_results):
         print("[ OK ] page #{} {}".format(i, expected))
 
     expected = "should be followed by {}".format(page_test_result.children)
-    children_urls = list(map(lambda page: page.url(), page.children()))
+    children_urls = list(map(lambda p: p.url(), page.children()))
     if children_urls != page_test_result.children:
         print("[FAIL] page #{} {} but has {}".format(i, expected, children_urls))
     else:

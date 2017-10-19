@@ -3,7 +3,6 @@ from logging import getLogger
 
 from page import Page
 
-
 queues_logger = getLogger("queues")
 
 
@@ -35,7 +34,6 @@ class DomainQueue:
 
         QUEUE_FILE_NAME = './domain_queue.txt'
 
-        
         lines = None
         with open(QUEUE_FILE_NAME, 'r') as f:
             lines = f.read().strip().splitlines()

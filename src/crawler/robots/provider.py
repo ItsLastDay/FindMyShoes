@@ -1,4 +1,4 @@
-from urllib import parse
+# from urllib import parse
 
 from url_getter import URLGetter
 from page import Page
@@ -44,18 +44,18 @@ class RobotsProvider:
         robots_parser = RobotsProvider._get_robots_parser(page.domain_url())
         return robots_parser.can_fetch(URLGetter.USERAGENT, page.path())
 
-    @staticmethod
-    def _is_page_in_domain(page_url: str, domain_url: str) -> bool:
-        def _simplified_url(url: str) -> str:
-            # netloc + path
-            netloc, path = parse.urlsplit(url)[1:3]
-            if netloc[:3] == "www":
-                netloc = netloc[3:]
-            return netloc + path
-
-        domain_url = _simplified_url(domain_url)
-        page_url = _simplified_url(page_url)
-        return page_url.find(domain_url) != -1
+    # @staticmethod
+    # def _is_page_in_domain(page_url: str, domain_url: str) -> bool:
+    #     def _simplified_url(url: str) -> str:
+    #         # netloc + path
+    #         netloc, path = parse.urlsplit(url)[1:3]
+    #         if netloc[:3] == "www":
+    #             netloc = netloc[3:]
+    #         return netloc + path
+    #
+    #     domain_url = _simplified_url(domain_url)
+    #     page_url = _simplified_url(page_url)
+    #     return page_url.find(domain_url) != -1
 
     @staticmethod
     def _get_robots_parser(domain_url: str) -> RobotsParser:
