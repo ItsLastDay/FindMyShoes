@@ -1,3 +1,7 @@
+import logging
+
+logging.basicConfig(filename='./logs/test_robots_debug.log', level=logging.DEBUG, filemode='w')
+
 from robots import RobotsProvider
 from page import Page
 
@@ -8,11 +12,11 @@ domain_pages = {
     ]),
     "https://google.com":
         [
-            ("https://www.google.com/maps/reserve/partners", True),
-            ("https://www.google.com/?hl=", True),
-            ("https://www.google.com/?hl=123", True),
-            ("https://www.google.com/?hl=123&", False),
-            ("https://www.google.com/?hL=123&", False)  # /?
+            ("/maps/reserve/partners", True),
+            ("/?hl=", True),
+            ("/?hl=123", True),
+            ("/?hl=123&", False),
+            ("/?hL=123&", False)  # /?
         ]
 }
 
