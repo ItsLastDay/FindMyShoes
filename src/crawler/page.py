@@ -25,7 +25,6 @@ class Page:
         self._text = None
         self._soup = None
 
-
     # Getters #
     def url(self):
         assert self._path.startswith('/')
@@ -66,7 +65,7 @@ class Page:
             page_logger.info("Failed to fetch page {} with status code {}".format(self.url(), response.status_code))
             assert not response.ok
         else:
-            self._soup = BeautifulSoup(response.text)
+            self._soup = BeautifulSoup(response.text, "lxml")
 
     def children(self) -> ['Page']:
         """Returns all pages that current page points to.
@@ -81,10 +80,14 @@ class Page:
 
         def get_path_from_link(link: Tag):
             path = link.get('href')
-            if path is None:
+
+            # href attribute is not present or leads to external domain.
+            if path is None or (path.startswith('http') and not path.startswith(self._domain_url)):
                 return None
+
             if path.startswith(self._domain_url):
                 path = path[len(self._domain_url):]
+
             if not path.startswith('http') and not path.startswith('/'):
                 path = '/' + path
             return path
@@ -116,12 +119,12 @@ class Page:
         """Sets the time this page was last fetched to the current time."""
         self._mtime = datetime.now().time()
 
-    def _meta_tags_content_has_property(self, property: str) -> bool:
+    def _meta_tags_content_has_property(self, property_name: str) -> bool:
         robots_metas = self._soup.findAll('meta', attrs={'name': re.compile(r'^robots', re.I)})
 
         def tag_content_has_property(tag):
             for key in ['CONTENT', 'content']:
-                if tag.get(key, '').lower().find(property.lower()) != -1:
+                if tag.get(key, '').lower().find(property_name.lower()) != -1:
                     return True
             return False
 

@@ -1,21 +1,22 @@
-import hashlib
-import json
-from logging import getLogger
 import base64
+import json
 
-import gdrive_client
-
-
-storage_logger = getLogger("storage")
+from storage import gdrive_client
+from storage.basic_storage import BasicStorage, storage_logger
 
 
 # Code parts borrowed from
 # https://developers.google.com/drive/v3/web/quickstart/python
-class Storage:
+class GDriveStorage(BasicStorage):
     """The place where all crawled pages are stored"""
 
     def __init__(self):
-        pass
+        super().__init__()
+        self._service = gdrive_client.get_gdrive_service()
+        self._meta_folder_id = self._service.files().list(q='name="metainfo"',
+                                                          fields='files(id)').execute()['files'][0]['id']
+        self._pages_folder_id = self._service.files().list(q='name="pages"', fields='files(id)').execute()['files'][0][
+            'id']
 
     @staticmethod
     def create_storage():
@@ -27,16 +28,9 @@ class Storage:
 
         Returns: `Storage` object.
         """
-        ret = Storage()
-        ret._service = gdrive_client.get_gdrive_service()
+        return GDriveStorage()
 
-        ret._meta_folder_id = ret._service.files().list(q='name="metainfo"',
-                fields='files(id)').execute()['files'][0]['id']
-        ret._pages_folder_id = ret._service.files().list(q='name="pages"',fields='files(id)').execute()['files'][0]['id']
-
-        return ret
-
-    def put_page(self, page_url, page_content):
+    def put_page(self, page_url: str, page_content: str) -> None:
         """Put page with conent into storage
         
         Args:
@@ -55,27 +49,21 @@ class Storage:
 
         Returns: nothing.
         """
-        content_hash = hashlib.md5(page_content.encode('utf-8')).hexdigest()
-
-        metadata = dict(
-            path=content_hash,
-            url=page_url,
-            size=len(page_content)
-        )
-        
-        page_content = base64.b64encode(page_content.encode('utf-8')).decode('latin-1')        
+        metadata = GDriveStorage.page_metadata(page_url, page_content)
+        metadata['path'] = metadata['hash']
+        page_content = base64.b64encode(page_content.encode('utf-8')).decode('latin-1')
 
         # Save metadata only if content was not seen before.
-        if self._save_file_if_not_exist('{}'.format(content_hash), page_content, parents=[self._pages_folder_id]):
-            self._save_file_if_not_exist('{}.meta'.format(page_url), json.dumps(metadata, sort_keys=True), parents=[self._meta_folder_id])
-            
+        if self._save_file_if_not_exist('{}'.format(metadata['path']), page_content, parents=[self._pages_folder_id]):
+            self._save_file_if_not_exist('{}.meta'.format(metadata['path']), json.dumps(metadata, sort_keys=True),
+                                         parents=[self._meta_folder_id])
 
     def _save_file_if_not_exist(self, filename, content, mimetype='text/html', parents=None):
         """
         Returns: boolean flag "did we save this file?".
         """
         if gdrive_client.is_file_exists(self._service, filename):
-            storage_logger.info("File {} already exist".format(filename))
+            storage_logger.info("File {} already exists".format(filename))
             return False
 
         gdrive_client.save_file(self._service, filename, content, mimetype, parents=parents)

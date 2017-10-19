@@ -7,7 +7,7 @@ from queue import PriorityQueue
 
 from page import Page
 from queues import DomainQueue, CrawlQueue
-from storage import Storage
+from storage import LocalStorage, GDriveStorage
 from robots import RobotsProvider
 
 
@@ -21,7 +21,8 @@ def safe_sleep(duration_secs):
 
 def main():
     domains_to_crawl = DomainQueue()
-    content_storage = Storage.create_storage()
+    # content_storage = GDriveStorage.create_storage()
+    content_storage = LocalStorage.create_storage()
 
     # Store pairs <next_possible_fetch_time, CrawlQueue_for_domain>
     time_domains_to_crawl = PriorityQueue()

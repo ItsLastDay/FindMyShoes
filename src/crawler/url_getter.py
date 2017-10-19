@@ -1,5 +1,6 @@
 import requests
 
+
 class URLGetter:
     USERAGENT = "findmyshoes_robot"
 
