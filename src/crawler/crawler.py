@@ -50,11 +50,11 @@ def main():
 
                 cur_page = page_queue.pop()
 
-                if robots_info.can_be_crawled(new_domain, cur_page._url):
+                if robots_info.can_be_crawled(cur_page):
                     cur_page.fetch()
 
                     if cur_page.can_be_stored():
-                        content_storage.put_page(cur_page._url,
+                        content_storage.put_page(cur_page.url(),
                                                  cur_page.get_cleaned_response())
 
                     page_queue.add_pages(cur_page.children())
@@ -77,5 +77,7 @@ def main():
 
 
 if __name__ == '__main__':
-    logging.basicConfig(filename='./logs/crawler_debug.log', level=logging.DEBUG)
+    # from threading import current_thread
+    # logging.basicConfig(filename='./logs/crawler_debug_{}.log'.format(current_thread().ident), level=logging.DEBUG)
+    logging.basicConfig(filename='./logs/crawler_debug.log', level=logging.DEBUG, filemode='w')
     sys.exit(main())

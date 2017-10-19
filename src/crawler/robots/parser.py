@@ -1,10 +1,10 @@
-from typing import Optional
-from urllib import parse
-from datetime import datetime
 from collections import namedtuple
+from datetime import datetime
 from math import inf
+from typing import Optional
 
-from robots.config import robots_logger, URLGetter
+from url_getter import URLGetter
+from robots.config import robots_logger
 
 
 class RobotsParserException(BaseException):
@@ -34,7 +34,7 @@ class MemberGroupData:
         new_entry = MemberGroupData.Entry(allow, template)
         self.lines.append(new_entry)
 
-    def allowed(self, url: str):
+    def allowed(self, path: str):
         # TODO optimize to avoid sorting lines on each query.
         def entry_sorter(entry):
             return -len('*'.join(entry.template))
@@ -44,11 +44,7 @@ class MemberGroupData:
         # path, query, fragment = parse.urlsplit(url)[2:]
         # path = path + query + fragment
 
-        domain = parse.urlsplit(url)[1]
-        assert len(domain) > 0
-        if url.find(domain) == -1:
-            raise RobotsParserException("url {} domain extraction error".format(url))
-        path = url[url.find(domain) + len(domain):]
+        assert not path.startswith("http")
 
         for l in self.lines:
             if MemberGroupData._line_matches_template(path, l.template):
@@ -147,12 +143,12 @@ class RobotsParser:
             else:
                 robots_logger.info("param {} is ignored in line {}".format(param, l))
 
-    def can_fetch(self, useragent, url: str) -> bool:
+    def can_fetch(self, useragent, path: str) -> bool:
         """Returns True if the useragent is allowed to fetch the url
         according to the rules contained in the parsed robots.txt file."""
         member_group_data = self._member_group_data(useragent)
         assert member_group_data is not None
-        return member_group_data.allowed(url)
+        return member_group_data.allowed(path)
 
     def mtime(self):
         """Returns the time the robots.txt file was last fetched.

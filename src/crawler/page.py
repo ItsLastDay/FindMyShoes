@@ -1,26 +1,41 @@
 # Andrey
+import re
 from datetime import datetime
 from logging import getLogger
 from typing import Optional
-import re
 
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Tag
 
-from robots.config import URLGetter
+from url_getter import URLGetter
 
 page_logger = getLogger("page")
 
 
 class Page:
-    def __init__(self, url):
+    def __init__(self, domain_url: str, path: str = '/'):
         """Page is created by text URL.
 
         `self.url` should point to this URL.
         """
-        self._url = url
+        while domain_url.endswith('/'):
+            domain_url = domain_url[:-1]
+        self._domain_url = domain_url
+        self._path = path
         self._mtime = None
         self._text = None
         self._soup = None
+
+
+    # Getters #
+    def url(self):
+        assert self._path.startswith('/')
+        return self._domain_url + self._path
+
+    def path(self):
+        return self._path
+
+    def domain_url(self):
+        return self._domain_url
 
     def can_be_stored(self) -> Optional[bool]:
         """Checks that we are allowed to store this page.
@@ -45,10 +60,10 @@ class Page:
 
         Returns: nothing.
         """
-        page_logger.debug('Fetching page {}'.format(self._url))
-        response = URLGetter.get_response(self._url)
+        page_logger.debug('Fetching page {}'.format(self.url()))
+        response = URLGetter.get_response(self.url())
         if response.status_code != 200:
-            page_logger.info("Failed to fetch page {} with status code {}".format(self._url, response.status_code))
+            page_logger.info("Failed to fetch page {} with status code {}".format(self.url(), response.status_code))
             assert not response.ok
         else:
             self._soup = BeautifulSoup(response.text)
@@ -64,7 +79,22 @@ class Page:
         if self._soup is None or self._meta_tags_content_has_property("nofollow"):
             return []
 
-        return list(map(lambda link: Page(link.get('href')), self._soup.find_all('a')))
+        def get_path_from_link(link: Tag):
+            path = link.get('href')
+            if path is None:
+                return None
+            if path.startswith(self._domain_url):
+                path = path[len(self._domain_url):]
+            if not path.startswith('http') and not path.startswith('/'):
+                path = '/' + path
+            return path
+
+        return list(map(lambda path: Page(self._domain_url, path),
+                        filter(lambda path: path is not None and path.startswith('/'),
+                               map(get_path_from_link, self._soup.find_all('a'))
+                               )
+                        )
+                    )
 
     def get_cleaned_response(self) -> str:
         """Returns text: HTML content of the page.

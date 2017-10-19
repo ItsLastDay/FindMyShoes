@@ -1,7 +1,9 @@
 from urllib import parse
 
-from robots.config import URLGetter
+from url_getter import URLGetter
+from page import Page
 from robots.parser import RobotsParser
+from robots.config import robots_logger
 
 
 class RobotsProviderException(BaseException):
@@ -29,7 +31,7 @@ class RobotsProvider:
             return delay
 
     @staticmethod
-    def can_be_crawled(domain_url: str, page_url: str) -> bool:
+    def can_be_crawled(page: Page) -> bool:
         """
         Args:
             `domain_url`: URL, e.g. "ya.ru". The domain of interest.
@@ -38,11 +40,9 @@ class RobotsProvider:
             if page with given URL allowed to be crawled.
         """
 
-        if not RobotsProvider._is_page_in_domain(page_url, domain_url):
-            # return False
-            raise RobotsProviderException("page \"{}\" does not belong to domain \"{}\"".format(page_url, domain_url))
-        robots_parser = RobotsProvider._get_robots_parser(domain_url)
-        return robots_parser.can_fetch(URLGetter.USERAGENT, page_url)
+        robots_logger.debug("checking page is crawlable {} for domain {}".format(page.url(), page.domain_url()))
+        robots_parser = RobotsProvider._get_robots_parser(page.domain_url())
+        return robots_parser.can_fetch(URLGetter.USERAGENT, page.path())
 
     @staticmethod
     def _is_page_in_domain(page_url: str, domain_url: str) -> bool:
@@ -59,9 +59,11 @@ class RobotsProvider:
 
     @staticmethod
     def _get_robots_parser(domain_url: str) -> RobotsParser:
+        while domain_url.endswith('/'):
+            domain_url = domain_url[:-1]
         _robots = RobotsProvider._robots
         if domain_url not in _robots:
             robots_txt_url = domain_url + "/robots.txt"
-            parser = RobotsParser(robots_txt_url)
-            _robots[domain_url] = parser
+            robots_logger.debug("creating RobotsParser for URL(robots.txt): {}".format(robots_txt_url))
+            _robots[domain_url] = RobotsParser(robots_txt_url)
         return _robots.get(domain_url, None)

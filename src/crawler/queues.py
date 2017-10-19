@@ -1,9 +1,7 @@
-import time
 from collections import deque
 from logging import getLogger
 
 from page import Page
-import gdrive_client
 
 
 queues_logger = getLogger("queues")
@@ -71,10 +69,10 @@ class CrawlQueue:
 
         Retuns: nothing.
         """
-        queues_logger.debug("Adding pages {}".format(list(map(lambda x: x._url, pages_list))))
+        queues_logger.debug("Adding pages {}".format(list(map(lambda x: x.url(), pages_list))))
         for p in pages_list:
-            if p._url not in self._used_pages_urls:
-                self._used_pages_urls.add(p._url)
+            if p.url() not in self._used_pages_urls:
+                self._used_pages_urls.add(p.url())
                 self._pages_queue.append(p)
 
     def pop(self) -> Page:
