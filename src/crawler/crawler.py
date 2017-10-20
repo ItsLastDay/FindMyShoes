@@ -91,6 +91,6 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         log_filename = './logs/crawler_debug_{}.log'.format(sys.argv[1])
     else:
-        './logs/crawler_debug.log'
+        log_filename = './logs/crawler_debug.log'
     logging.basicConfig(filename=log_filename, level=logging.DEBUG, filemode='w')
     sys.exit(main())
