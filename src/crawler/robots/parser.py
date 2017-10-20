@@ -132,7 +132,7 @@ class RobotsParser:
             param = param.lower()
             value = value.strip()
             if param == 'user-agent':
-                member_group_data = RobotsParser._get_member_group(value)
+                member_group_data = self._get_member_group(value)
             elif param == 'disallow' or param == 'allow':
                 member_group_data.add_line(param == 'allow', value)
             elif param == 'sitemap':
