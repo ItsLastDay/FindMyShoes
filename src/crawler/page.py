@@ -3,6 +3,7 @@ import re
 from datetime import datetime
 from logging import getLogger
 from typing import Optional
+from urllib import parse
 
 from bs4 import BeautifulSoup, Tag
 
@@ -11,15 +12,25 @@ from url_getter import URLGetter
 page_logger = getLogger("page")
 
 
+class PageException(BaseException):
+    pass
+
+
 class Page:
     def __init__(self, domain_url: str, path: str = '/'):
         """Page is created by text URL.
 
         `self.url` should point to this URL.
         """
-        while domain_url.endswith('/'):
-            domain_url = domain_url[:-1]
-        self._domain_url = domain_url
+        # < scheme >: // < netloc > / < path >? < query >  # <fragment>
+        if not path.startswith('/'):
+            raise PageException("page path should start with '/'")
+
+        scheme, netloc, domain_path = parse.urlsplit(domain_url)[:3]
+        if len(domain_path) > 0:
+            path = "/{}{}".format(domain_path, path)
+
+        self._domain_url = "{}://{}".format(scheme, netloc)
         self._path = path
         self._mtime = None
         self._text = None
