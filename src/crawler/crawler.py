@@ -21,8 +21,8 @@ def safe_sleep(duration_secs):
 
 def main():
     domains_to_crawl = DomainQueue()
-    # content_storage = GDriveStorage.create_storage()
-    content_storage = LocalStorage.create_storage()
+    content_storage = GDriveStorage.create_storage()
+    #content_storage = LocalStorage.create_storage()
 
     # Store pairs <next_possible_fetch_time, CrawlQueue_for_domain>
     time_domains_to_crawl = PriorityQueue()
@@ -52,21 +52,27 @@ def main():
                 cur_page = page_queue.pop()
 
                 if robots_info.can_be_crawled(cur_page):
-                    cur_page.fetch()
+                    try:
+                        cur_page.fetch()
 
-                    if cur_page.can_be_stored():
-                        content_storage.put_page(cur_page.url(),
-                                                 cur_page.get_cleaned_response())
+                        if cur_page.can_be_stored():
+                            content_storage.put_page(cur_page.url(),
+                                                     cur_page.get_cleaned_response())
 
-                    page_queue.add_pages(cur_page.children())
+                        page_queue.add_pages(cur_page.children())
 
-                    # Page is fetched: next access should be delayed.
-                    required_delay = \
-                        robots_info.get_robots_delay(new_domain)
-                    time_domains_to_crawl.put_nowait(
-                        (fetch_time + required_delay,
-                         page_queue)
-                    )
+                        # Page is fetched: next access should be delayed.
+                        required_delay = \
+                            robots_info.get_robots_delay(new_domain)
+                        time_domains_to_crawl.put_nowait(
+                            (fetch_time + required_delay,
+                             page_queue)
+                        )
+                    except:
+                        # Seen errors: 
+                        # apiclient.errors.HttpError: <HttpError 403 when requesting https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&alt=json returned "User rate limit exceeded.">
+                        # requests.exceptions.ConnectionError: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response',))
+                        time.sleep(10)
                 else:
                     # Page should not be fetched: we can ignore delay.
                     time_domains_to_crawl.put_nowait((fetch_time,
