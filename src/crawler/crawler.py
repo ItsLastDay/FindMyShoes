@@ -86,5 +86,11 @@ def main():
 if __name__ == '__main__':
     # from threading import current_thread
     # logging.basicConfig(filename='./logs/crawler_debug_{}.log'.format(current_thread().ident), level=logging.DEBUG)
-    logging.basicConfig(filename='./logs/crawler_debug.log', level=logging.DEBUG, filemode='w')
+    import sys
+
+    if len(sys.argv) > 1:
+        log_filename = './logs/crawler_debug_{}.log'.format(sys.argv[1])
+    else:
+        log_filename = './logs/crawler_debug.log'
+    logging.basicConfig(filename=log_filename, level=logging.DEBUG, filemode='w')
     sys.exit(main())

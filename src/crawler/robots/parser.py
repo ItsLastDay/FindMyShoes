@@ -119,7 +119,8 @@ class RobotsParser:
         self.modified()
 
     def parse(self, lines: [str]):
-        member_group_data = None
+        # default member group.
+        member_group_data = self._get_member_group('*')
         for l in lines:
             if l.find('#') != -1:
                 l = l[:l.find('#')]
@@ -131,9 +132,7 @@ class RobotsParser:
             param = param.lower()
             value = value.strip()
             if param == 'user-agent':
-                if value not in self._data:
-                    self._data[value] = MemberGroupData(value)
-                member_group_data = self._data[value]
+                member_group_data = RobotsParser._get_member_group(value)
             elif param == 'disallow' or param == 'allow':
                 member_group_data.add_line(param == 'allow', value)
             elif param == 'sitemap':
@@ -190,3 +189,9 @@ class RobotsParser:
             if useragent.startswith(name) or name == "*":
                 return self._data[name]
         return None
+
+    def _get_member_group(self, name: str):
+        """creates if neccessary member group with specified name and returns it."""
+        if name not in self._data:
+            self._data[name] = MemberGroupData(name)
+        return self._data[name]

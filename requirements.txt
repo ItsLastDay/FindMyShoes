@@ -8,7 +8,6 @@ lxml==4.1.0
 pyasn1==0.3.7
 pyasn1-modules==0.1.5
 python-dateutil==2.6.1
-reppy==0.4.8
 requests==2.18.4
 rsa==3.4.2
 six==1.11.0
