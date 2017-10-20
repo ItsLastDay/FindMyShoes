@@ -61,14 +61,14 @@ Desired functionality: given a query with shoes description, like \textit{"ту�
 
 Features (may change later during development):
 \begin{enumerate}
-    \item system understands queries like \textit{"туфли с закрытым носом"} и \textit{"туфли на танкетке"} and results in relevant pages with user-specified filters applied;
+    \item system understands queries like \textit{"туфли с закрытым носом"} and \textit{"туфли на танкетке"} as different, and results in precisely relevant pages with user-specified filters applied;
     \item filtering on preferred e-shops;
     \item filtering and sorting by price.
 \end{enumerate}
 
 \section{Data acquisition}
 \subsection{Source code}
-    we have our repository at GitHub\footnote{\url{https://github.com/ItsLastDay/FindMyShoes}}. 
+    We have our repository at GitHub\footnote{\url{https://github.com/ItsLastDay/FindMyShoes}}. 
     Code is in Python 3.5 and package requirements are stored in \texttt{requirements.txt}
     
 \subsection{Architecture}
@@ -87,12 +87,12 @@ Features (may change later during development):
     
     \subsubsection{Package \texttt{'storage'}}
     \begin{itemize}
-    \item \texttt{BasicStorage}\footnote{\url{https://github.com/ItsLastDay/FindMyShoes/blob/master/src/crawler/storage/basic_storage.py\#L9}} - abstraction of storage. It have its implementations as:
+    \item \texttt{BasicStorage}\footnote{\url{https://github.com/ItsLastDay/FindMyShoes/blob/master/src/crawler/storage/basic_storage.py\#L9}} - abstraction of storage. It has its implementations as:
     \item \texttt{LocalStorage} and
     \item \texttt{GDriveStorage}.
     \end{itemize}
     
-    Along with page, meta-information is stored: URL, size, path to file. Storage also filters pages by content using MD5 hash (it is sufficiently long to not bother about hash collisions, also it is reasonably fast).
+    Along with page, meta-information is stored: URL, size, path to file. Storage also filters duplicate pages by content using MD5 hash (it is sufficiently long to not bother about hash collisions, also it is reasonably fast).
     
     \subsubsection{Package \texttt{'robots'}}
     \begin{itemize}
@@ -124,8 +124,7 @@ In order not to bother any site with our crawler's activity and have no impact o
 
 \subsection{Flow}
     There can be many participating processes in our crawling. 
-    Each computer must have a list of seed domains assigned and placed into \texttt{domain\_queue.txt} file next to \texttt{crawler.py}. O
-    ne can start arbitrary number of workers with \texttt{python3 crawler.py}. Then, firewall strategy will took place and every domain will be assigned to one specific worker (so that one worker still can crawl several domains if it's fast enough).
+    Each computer must have a list of seed domains assigned and placed into \texttt{domain\_queue.txt} file next to \texttt{crawler.py}. One can start arbitrary number of workers with \texttt{python3 crawler.py}. Then, firewall strategy will took place and every domain will be assigned to one specific worker (so that one worker still can crawl several domains if it's fast enough).
     
     Workers have an algorithm, as follows:
     \begin{enumerate}
@@ -163,6 +162,6 @@ At night 115793 pages were downloaded while running 3 crawlers on several differ
     \item \url{https://www.net-a-porter.com/ru/en/}
 \end{itemize}
 
-As our goal of getting more than 100k documents was achieved, we decided to continue our work on retrieving indexable data, not only raw text from pages.
+Our crawler proves itself to be polite and distributed. Besides, we crawled more than 100k documents. Therefore, we hope for an excellent mark.
 
 \end{document}
