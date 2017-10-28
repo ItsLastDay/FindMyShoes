@@ -26,7 +26,7 @@ class LocalStorage(BasicStorage):
             f.write(json.dumps(metadata, sort_keys=True))
 
         # page_content = base64.b64encode(page_content.encode('utf-8')).decode('latin-1')
-        with open(filepath, 'w') as f:
+        with open(filepath + '.html', 'w') as f:
             storage_logger.debug("writing page content to file: {}".format(filepath))
             f.write(page_content)
 

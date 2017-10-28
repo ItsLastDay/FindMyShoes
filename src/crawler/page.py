@@ -57,7 +57,8 @@ class Page:
         """
         if self._soup is None:
             return None
-        return not self._meta_tags_content_has_property("noindex")
+        from page_filter import PageFilter
+        return not self._meta_tags_content_has_property("noindex") and PageFilter.should_be_stored(self)
 
     def fetch(self):
         """Query self.url, Download HTTP response of the server.
@@ -111,15 +112,10 @@ class Page:
                     )
 
     def get_cleaned_response(self) -> str:
-        """Returns text: HTML content of the page.
-
-        Since we are mainly interested in HTML content
-        of <body>...</body>, only that content is returned.
-
-        Returns:
-            str - content of <body> HTML tag.
+        """Retrieve page's html content.
+        :return: html content of page.
         """
-        return self._soup.body.text
+        return str(self._soup)
 
     def mtime(self) -> datetime:
         """Returns the time the page was last fetched.
