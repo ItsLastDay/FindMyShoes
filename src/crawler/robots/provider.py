@@ -42,9 +42,10 @@ class RobotsProvider:
             if page with given URL allowed to be crawled.
         """
 
-        robots_logger.debug("checking page is crawlable {} for domain {}".format(page.url(), page.domain_url()))
         robots_parser = RobotsProvider._get_robots_parser(page.domain_url())
-        return robots_parser.can_fetch(URLGetter.USERAGENT, page.path())
+        result = robots_parser.can_fetch(URLGetter.USERAGENT, page.path())
+        robots_logger.debug("checking page is crawlable {} for domain {}: {}".format(page.url(), page.domain_url(), result))
+        return result
 
     @staticmethod
     def _get_robots_parser(domain_url: str) -> RobotsParser:

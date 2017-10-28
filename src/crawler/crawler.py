@@ -21,8 +21,8 @@ def safe_sleep(duration_secs):
 
 def main():
     domains_to_crawl = DomainQueue()
-    content_storage = GDriveStorage.create_storage()
-    #content_storage = LocalStorage.create_storage()
+    # content_storage = GDriveStorage.create_storage()
+    content_storage = LocalStorage.create_storage()
 
     # Store pairs <next_possible_fetch_time, CrawlQueue_for_domain>
     time_domains_to_crawl = PriorityQueue()
@@ -68,10 +68,12 @@ def main():
                             (fetch_time + required_delay,
                              page_queue)
                         )
-                    except:
+                    except Exception as e:
+                        main_crawler_logger.error(e)
                         # Seen errors: 
                         # apiclient.errors.HttpError: <HttpError 403 when requesting https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&alt=json returned "User rate limit exceeded.">
                         # requests.exceptions.ConnectionError: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response',))
+                        # TODO renew URLGetter session.
                         time.sleep(10)
                 else:
                     # Page should not be fetched: we can ignore delay.
@@ -92,5 +94,6 @@ if __name__ == '__main__':
         log_filename = './logs/crawler_debug_{}.log'.format(sys.argv[1])
     else:
         log_filename = './logs/crawler_debug.log'
-    logging.basicConfig(filename=log_filename, level=logging.DEBUG, filemode='w')
+    logging.basicConfig(filename=log_filename, level=logging.DEBUG, filemode='w',
+                        format='%(asctime)s %(levelname)s:%(name)s:%(message)s')
     sys.exit(main())
