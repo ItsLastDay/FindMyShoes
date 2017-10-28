@@ -27,10 +27,13 @@ class Page:
             raise PageException("page path should start with '/'")
 
         scheme, netloc, domain_path = parse.urlsplit(domain_url)[:3]
+        if domain_path.startswith('/'):
+            domain_path = domain_path[1:]
         if len(domain_path) > 0:
             path = "/{}{}".format(domain_path, path)
 
         self._domain_url = "{}://{}".format(scheme, netloc)
+        assert path.startswith('/') and (len(path) == 1 or path[1] != '/')
         self._path = path
         self._mtime = None
         self._text = None
@@ -57,8 +60,16 @@ class Page:
         """
         if self._soup is None:
             return None
-        from page_filter import PageFilter
-        return not self._meta_tags_content_has_property("noindex") and PageFilter.should_be_stored(self)
+        from storage import PageFilter
+        if self._meta_tags_content_has_property("noindex"):
+            page_logger.debug('Page "{}" cannot be stored because of noindex property'.format(self.url()))
+            return False
+
+        if not PageFilter.should_be_stored(self):
+            page_logger.debug('Page "{}" cannot be stored because of PageFilter settings'.format(self.url()))
+            return False
+        page_logger.debug('OK, Page "{}" can be stored'.format(self.url()))
+        return True
 
     def fetch(self):
         """Query self.url, Download HTTP response of the server.

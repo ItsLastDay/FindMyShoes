@@ -1,24 +1,23 @@
-from http.cookiejar import domain_match
+import time
 
 from page import Page
-from page_filter import init_filters, PageFilter
-
-init_filters()
+from storage.page_filter import PageFilter
 
 def general_test(domain_url, tests):
-    filter = PageFilter.domain_filters[domain_url]
+    filter = PageFilter._get_domain_filters(domain_url)
     for path, expected in tests:
         if type(expected) != tuple:
             expected = (expected, )
         p = Page(domain_url, path)
         p.fetch()
+        time.sleep(0.5)
         result = tuple(map(lambda f: f.should_be_stored(p), filter))
         result_str = "[ OK ]" if result == expected else "[FAIL]"
         print('{} URL: "{}", got {}, expected: {}'.format(result_str, domain_url + path, result, expected))
 
 
 def bonprix_test():
-    domain_url = 'https://www.bonprix.ru'
+    domain_url = 'https://www.bonprix.ru/'
     tests = [('/produkty', (False, False)),
              ('/produkty/', (True, False)),
              ('/produkty/polusapozhki-svetlo-seryj-907494/', (True, True)),
@@ -38,7 +37,7 @@ def respect_shoes_test():
 
 
 def antoniobiaggi_test():
-    domain_url = 'https://ru.antoniobiaggi.com'
+    domain_url = 'https://ru.antoniobiaggi.com/'
     tests = [
         ('/47541-botinki-zhenskie-zamshevye.html', True),
         ('/47353-sapogi-zhenskie-zamshevye.html', True),
@@ -55,7 +54,7 @@ def antoniobiaggi_test():
 
 
 def lamoda_test():
-    domain_url = 'https://www.lamoda.ru'
+    domain_url = 'https://www.lamoda.ru/'
     tests = [
         ('/c/277/shoes-sandalii-dlya-malchikov/', (False, True)),
         ('/p/ch001abrgi28/shoes-chicco-sandalii/', (True, True)),
@@ -66,7 +65,7 @@ def lamoda_test():
 
 
 def ecco_shoes_test():
-    domain_url = 'https://www.ecco-shoes.ru'
+    domain_url = 'https://www.ecco-shoes.ru/'
     tests = [
         ('/accessories/', (False, False)),
         # ('/catalog/723733/50721/', (True, True)), # can't do anything with no "Обувь" in children's breadcrumbs.
