@@ -73,6 +73,10 @@ class CrawlQueue:
                 self._used_pages_urls.add(p.url())
                 self._pages_queue.append(p)
 
+    def add_page(self, page: Page):
+        """Adding page ignoring used_pages list"""
+        self._pages_queue.append(page)
+
     def pop(self) -> Page:
         """Pop the page on the top. Also return it.
 

@@ -27,6 +27,8 @@ class Page:
             raise PageException("page path should start with '/'")
 
         scheme, netloc, domain_path = parse.urlsplit(domain_url)[:3]
+        if netloc.endswith('/'):
+            netloc = netloc[:-1]
         if domain_path.startswith('/'):
             domain_path = domain_path[1:]
         if len(domain_path) > 0:
@@ -103,6 +105,12 @@ class Page:
 
         def get_path_from_link(link: Tag):
             path = link.get('href')
+            if path is None:
+                path = link.get('data-link')
+
+                # If found an internal link and it doesn't lead to external site.
+                if path is not None and path.startswith('/'):
+                    path = "{}{}".format(self._domain_url, path)
 
             # href attribute is not present or leads to external domain.
             if path is None or (path.startswith('http') and not path.startswith(self._domain_url)):
