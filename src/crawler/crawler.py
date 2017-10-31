@@ -75,6 +75,12 @@ def main():
                         # requests.exceptions.ConnectionError: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response',))
                         # TODO renew URLGetter session.
                         time.sleep(10)
+                        if not hasattr(cur_page, "_fail_count"):
+                            cur_page._fail_count = 0
+                        if cur_page._fail_count < 3:
+                            cur_page._fail_count += 1
+                            page_queue.add_page(cur_page)
+                            time_domains_to_crawl.put_nowait((fetch_time, page_queue))
                 else:
                     # Page should not be fetched: we can ignore delay.
                     time_domains_to_crawl.put_nowait((fetch_time,
