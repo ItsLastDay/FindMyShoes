@@ -13,10 +13,10 @@ class PageFilter(ABC):
         PageFilter.domain_filters = defaultdict(lambda: [])
         bonprix_filter = PageFilter._get_domain_filters("https://www.bonprix.ru")
         bonprix_filter.append(RegexpPageFilter("/produkty/.*"))
-        bonprix_filter.append(PredicatePageFilter(bonprix_page_is_shoes))
+        bonprix_filter.append(BreadcrumbPageFilter('div#breadcrumb a > span', 'обувь'))
 
         respect_shoes_filter = PageFilter._get_domain_filters('https://www.respect-shoes.ru')
-        respect_shoes_filter.append(PredicatePageFilter(respect_shoes_page_is_shoes))
+        respect_shoes_filter.append(BreadcrumbPageFilter('ul.breadcrumbs a', 'обувь'))
 
         antoniobiaggi_filter = PageFilter._get_domain_filters('https://ru.antoniobiaggi.com')
         rs = "|".join(map(lambda s: r'/\d+-{}-.*'.format(s), ['sapogi',
@@ -34,17 +34,18 @@ class PageFilter(ABC):
 
         lamoda_filter = PageFilter._get_domain_filters('https://www.lamoda.ru')
         lamoda_filter.append(RegexpPageFilter(r'/\w/\w{12}/shoes-.*'))
-        lamoda_filter.append(PredicatePageFilter(lamoda_page_is_shoes))
+        lamoda_filter.append(BreadcrumbPageFilter('div.breadcrumbs > span > a > span', 'обувь'))
 
         asos_filter = PageFilter._get_domain_filters('http://www.asos.com')
-        asos_filter.append(RegexpPageFilter(r'/ru/.*'))  # russian only
-        #  нет хлебных крошек со словом 'Обувь' на русском сайте((
-        # asos_filter.append(PredicatePageFilter(asos_page_is_shoes))
+        asos_filter.append(RegexpPageFilter(r'/ru/.+prd/[0-9]{7}'))  # russian only
+        asos_templates = ['Туфли, ботинки и кеды', 'Новинки: обувь', 'обувь']
+        asos_filter.append(BreadcrumbPageFilter('div#breadcrumb > ul > li > a', asos_templates))
 
         # 'https://www.ecco-shoes.ru/catalog/634504/01053/'
         ecco_shoes_filter = PageFilter._get_domain_filters('https://www.ecco-shoes.ru')
         ecco_shoes_filter.append(RegexpPageFilter(r'/catalog/\d+/\d+/?'))
-        ecco_shoes_filter.append(PredicatePageFilter(ecco_shoes_is_shoes))
+        ecco_shoes_filter.append(
+            BreadcrumbPageFilter('div.i-breadcrumb > ul.i-breadcrumb-way > li > a > span', 'обувь'))
 
     @abstractmethod
     def should_be_stored(self, page: Page) -> bool:
@@ -89,34 +90,31 @@ class RegexpPageFilter(PageFilter):
         return self._re.match(page.path()) is not None
 
 
+class BreadcrumbPageFilter(PageFilter):
+    def __init__(self, css_spans_selector, templates):
+        self.spans_selector = css_spans_selector
+
+        def filter_from_template(template):
+            return lambda span: span.text.lower().find(template) != -1
+
+        if type(templates) == list:
+            self.span_filters = list(map(filter_from_template, templates))
+        else:
+            assert type(templates) == str
+            self.span_filters = [filter_from_template(templates)]
+
+    def should_be_stored(self, page: Page) -> bool:
+        if page._soup is None: return False
+        spans = page._soup.select(self.spans_selector)
+        result = False
+        for f in self.span_filters:
+            result = result or any(map(f, spans))
+        return result
+
+
 class PredicatePageFilter(PageFilter):
     def __init__(self, predicate):
         self._predicate = predicate
 
     def should_be_stored(self, page: Page) -> bool:
         return self._predicate(page)
-
-
-# TODO formalize searching through breadcrumbs and use regular expressions.
-def bonprix_page_is_shoes(page: Page) -> bool:
-    if page._soup is None: return False
-    spans = page._soup.select('div#breadcrumb a > span')
-    return any(map(lambda span: span.text.lower().find('обувь') != -1, spans))
-
-
-def respect_shoes_page_is_shoes(page: Page) -> bool:
-    if page._soup is None: return False
-    return any(map(lambda a: a.text.lower().find('обувь'), page._soup.select('ul.breadcrumbs a')))
-
-
-def lamoda_page_is_shoes(page: Page) -> bool:
-    if page._soup is None: return False
-    spans = page._soup.select('div.breadcrumbs > span > a > span')
-    return any(map(lambda span: span.text.lower().find('обувь') != -1, spans))
-
-
-def ecco_shoes_is_shoes(page: Page) -> bool:
-    if page._soup is None: return False
-    spans = page._soup.select('div.i-breadcrumb > ul.i-breadcrumb-way > li > a > span')
-    # TODO do something with children goods excluded this way.
-    return any(map(lambda span: span.text.lower().find('обувь') != -1, spans))
