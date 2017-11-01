@@ -44,7 +44,9 @@ def extract_and_write_json(meta_file):
     """
     # Example info: 
     # {'hash': 'a4da8866c9bb2fabe5abfda701a6e8ac', 'url': 'https://www.bonprix.ru/produkty/tufli-krasnyj-971149/', 'path': '_produkty##tufli-krasnyj-971149##', 'size': 612326}
-    meta_info = json.load(meta_file.open())
+    meta_info = None
+    with meta_file.open() as f:
+        meta_info = json.load(f)
 
     html_path = meta_file.parent / (meta_info['path'] + '.html')
 
@@ -58,7 +60,8 @@ def extract_and_write_json(meta_file):
         print(html_path)
         populate_data(result_dict, html_path, domain)
         result_path = pathlib.Path(JSON_DIR) / ('{}_{}_{}.json'.format(domain, meta_info['path'], meta_info['hash']))
-        json.dump(result_dict, result_path.open('w'), ensure_ascii=False)
+        with result_path.open('w') as out:
+            json.dump(result_dict, out, ensure_ascii=False)
 
 
 def main():
