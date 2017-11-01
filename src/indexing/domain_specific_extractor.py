@@ -95,6 +95,9 @@ class AbstractDataExtractor:
         not_none = filter(lambda x: bool(x), texts)
         return list(map(lambda x: x.strip(), not_none))
 
+    def _get_raw_data_by_selector(self, selector):
+        return self._selectable_data.cssselect(selector)
+
     def _save(self, key_name, selector, 
             postprocess_func=_get_single_value):
         if selector is None:
@@ -166,6 +169,13 @@ class BonprixExtractor(AbstractDataExtractor):
         desc1 = self._get_data_by_selector(self._DESCRIPTION_SELECTOR_1)
         desc2 = self._get_data_by_selector(self._DESCRIPTION_SELECTOR_2)
         self._save_raw('description', '{}\n{}'.format(desc1, desc2))
+
+    def _parse_sizes(self):
+        data = self._get_raw_data_by_selector(self._SIZES_SELECTOR)
+        # Example of .text_content(): "'\nНемецкий размер36\n\t"
+        sizes = list(map(lambda x: x.text_content().strip()[-2:], data))
+        if sizes:
+            self._save_raw('sizes', sizes)
 
 
 @extractor_for('respect-shoes.ru')
