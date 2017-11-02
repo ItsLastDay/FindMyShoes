@@ -1,48 +1,81 @@
 import re
-import string
 
 from nltk.tokenize import toktok
+from nltk.stem.snowball import RussianStemmer
 
 
-tokenizer = toktok.ToktokTokenizer()
+class TextExtractor:
+    tokenizer = toktok.ToktokTokenizer()
 
-# Sentence is something that ends with '.', '!' or '?'
-sent_splitter = re.compile('\.+|!+|\?+')
+    # Sentence is something that ends with '.', '!' or '?'
+    sentence_splitter = re.compile('\.+|!+|\?+')
 
+    word_filter = re.compile(r'[а-яА-Я]+')
 
-def split_by_sentences(text):
-    return re.split(sent_splitter, text)
+    stopwords = [
+        'на',
+        'и',
+        'в',
+        'не',
+        'очень',
+        'но',
+        'с',
+        'как',
+        'для',
+        'по',
+        'см',
+        'а',
+        'из',
+        'от',
+        'без',
+        'у',
+        'к',
+        'что'
+    ]
 
-def tokenize_sentence(sent):
-    return tokenizer.tokenize(sent)
+    # stemming reference: http://snowball.tartarus.org/algorithms/russian/stemmer.html
+    stemmer = RussianStemmer()
 
-def get_normal_words_form_text(text):
-    sentences = split_by_sentences(text)
-    words = []
-    for sent in sentences:
-        cur_words = tokenize_sentence(sent)
-        words.extend(cur_words)
+    @staticmethod
+    def _split_by_sentences(text):
+        return re.split(TextExtractor.sentence_splitter, text)
 
-    # Erase all words that do not contain letter
-    words = filter(lambda x: re.match('\w', x), words)
-    words = map(lambda x: x.lower(), words)
+    @staticmethod
+    def tokenize_sentence(sent):
+        return TextExtractor.tokenizer.tokenize(sent)
 
-    # TODO: stemming
-    # TODO: stopword removal
+    @staticmethod
+    def get_normal_words_from_text(text):
+        sentences = TextExtractor._split_by_sentences(text)
+        words = []
+        for sent in sentences:
+            cur_words = TextExtractor.tokenize_sentence(sent)
+            words.extend(cur_words)
 
-    return list(words)
+        # Erase all words that do not contain letter
+        words = filter(TextExtractor.word_filter.match, words)
+        words = map(lambda x: x.lower(), words)
 
+        # removing stopwords.
+        words = filter(lambda word: word not in TextExtractor.stopwords, words)
 
-def test():
-    text = 'Я поШЛА ГулЯТЬ!!!! Как, и И всё??? И всё.'
-    sents = split_by_sentences(text)
+        # not making stem forms unique.
+        words = map(TextExtractor.stemmer.stem, words)
 
-    print(sents)
+        return list(words)
 
-    for sent in sents:
-        print(tokenizer.tokenize(sent))
+    @staticmethod
+    def test():
+        text = 'Я "поШЛА" ГулЯТЬ!!!! Как, и И всё??? И всё.'
+        sentences = TextExtractor._split_by_sentences(text)
 
-    print(get_normal_words_form_text(text))
+        print(sentences)
+
+        for sent in sentences:
+            print(TextExtractor.tokenizer.tokenize(sent))
+
+        print(TextExtractor.get_normal_words_from_text(text))
+
 
 if __name__ == '__main__':
-    test()
+    TextExtractor.test()

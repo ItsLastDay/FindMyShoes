@@ -1,33 +1,25 @@
 #!/usr/bin/env python3
 import sys
-import os
-import os.path
 import pathlib
-
 import collections
 
+import argparse
 from multiprocessing import Pool
+from functools import partial
+from math import inf
 
 import json
 import copy
 
 import urllib.parse
 
-
 from domain_specific_extractor import get_extractor_for_domain
 
-
-DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir, os.pardir, 'data'))
-
-RAW_DATA_DIR = os.path.join(DATA_DIR, 'raw')
-JSON_DIR = os.path.join(DATA_DIR, 'json')
-
 count_by_domain = collections.Counter()
-limit_by_domain = 10 ** 9
 
 
 def get_page_domain(page_url):
-    return urllib.parse.urlparse(page_url).netloc    
+    return urllib.parse.urlparse(page_url).netloc
 
 
 def populate_data(data_dict, html_path, domain):
@@ -39,7 +31,7 @@ def populate_data(data_dict, html_path, domain):
     get_extractor_for_domain(domain).parse_html(raw_html, data_dict)
 
 
-def extract_and_write_json(meta_file):
+def extract_and_write_json(meta_file, json_dir, limit_by_domain=inf):
     """Given meta-information file about page, extract and store all interesting data from it.
     """
     # Example info: 
@@ -59,21 +51,26 @@ def extract_and_write_json(meta_file):
     if count_by_domain[domain] <= limit_by_domain:
         print(html_path)
         populate_data(result_dict, html_path, domain)
-        result_path = pathlib.Path(JSON_DIR) / ('{}_{}_{}.json'.format(domain, meta_info['path'], meta_info['hash']))
+        result_path = pathlib.Path(json_dir) / ('{}_{}_{}.json'.format(domain, meta_info['path'], meta_info['hash']))
         with result_path.open('w') as out:
             json.dump(result_dict, out, ensure_ascii=False)
 
 
 def main():
-    global limit_by_domain
-    if len(sys.argv) > 1:
-        limit_by_domain = int(sys.argv[1])
+    from common import default_raw_dir, default_json_dir
+    parser = argparse.ArgumentParser(description="data_extractor")
+    parser.add_argument("--domain_limit", type=int, default=inf)
+    parser.add_argument("--json-dir", type=str, default=default_json_dir())
+    parser.add_argument("--raw-dir", type=str, default=default_raw_dir())
+    args = parser.parse_args()
 
     with Pool() as pool:
-        meta_files = list(pathlib.Path(RAW_DATA_DIR).glob('**/*.meta'))
-        pool.map(extract_and_write_json, meta_files)
+        meta_files = list(pathlib.Path(args.raw_dir).glob('**/*.meta'))
+        file_task = partial(extract_and_write_json, json_dir=args.json_dir, limit_by_domain=args.domain_limit)
+        pool.map(file_task, meta_files)
 
     return 0
+
 
 if __name__ == '__main__':
     sys.exit(main())

@@ -1,27 +1,16 @@
 #!/usr/bin/env python3
 
-import os
-import os.path
 import pathlib
 import collections
+import argparse
 
 import json
 import struct
 
-import glob
 import sys
 import mmap
 
-from text_utils import get_normal_words_form_text
-
-
-DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir, os.pardir, 'data'))
-JSON_DIR = os.path.join(DATA_DIR, 'json')
-INDEX_DIR = os.path.join(DATA_DIR, 'index')
-
-DICTIONARY_PATH = os.path.join(INDEX_DIR, 'dictionary.txt')
-WEIGHT_INDEX_PATH = os.path.join(INDEX_DIR, 'weight.bin')
-INVERTED_INDEX_PATH = os.path.join(INDEX_DIR, 'inverted.bin')
+from text_utils import TextExtractor
 
 # Store entries in inverted index as integers.
 INVERTED_ENTRY_SIZE = struct.calcsize('i')
@@ -34,11 +23,11 @@ def get_words_from_path(doc_path):
 
     product_description = '{}\n{}'.format(json_data.get('description', ''), 
                                           '\n'.join(json_data.get('reviews', '')))
-    return get_normal_words_form_text(product_description)
+    return TextExtractor.get_normal_words_from_text(product_description)
 
 
 def make_first_pass(documents):
-    '''First pass of indexation: count word occurencies and required index size.
+    """First pass of indexation: count word occurencies and required index size.
 
     Returns dictionary of the following form:
     {
@@ -54,7 +43,7 @@ def make_first_pass(documents):
             ...
         }
     }
-    '''
+    """
     result_dict = dict()
 
     result_dict['documents'] = list(map(lambda path: path.name, documents))
@@ -109,9 +98,9 @@ def make_second_pass_inner(weights, inverted, documents, dictionary):
     print('Second pass finished')
 
 
-def make_second_pass(documents, dictionary):
-    '''Second pass of indexation: actually store data to index.
-    '''
+def make_second_pass(documents, dictionary, inverted_index_path, weight_path):
+    """Second pass of indexation: actually store data to index.
+    """
     word_freq_pairs = [(word, dictionary['words'][word]['global_count']) for word in dictionary['words']]
     word_freq_pairs = sorted(word_freq_pairs, key=lambda x: x[1], reverse=True)
     index_size = sum(map(lambda x: x[1], word_freq_pairs)) * INVERTED_ENTRY_SIZE
@@ -119,8 +108,8 @@ def make_second_pass(documents, dictionary):
     print('Required index size {} bytes'.format(index_size))
     print('Top 30 words: {}'.format(word_freq_pairs[:30]))
 
-    with open(INVERTED_INDEX_PATH, 'w+b') as inverted_index:
-        with open(WEIGHT_INDEX_PATH, 'w+b') as weight_index:
+    with open(inverted_index_path, 'w+b') as inverted_index:
+        with open(weight_path, 'w+b') as weight_index:
             inverted_index.write(b'\0' * index_size)
             weight_index.write(b'\0' * index_size)
             with mmap.mmap(weight_index.fileno(), index_size) as weight_mmap:
@@ -129,18 +118,30 @@ def make_second_pass(documents, dictionary):
 
 
 def main():
-    documents = list(pathlib.Path(JSON_DIR).glob('*.json'))
+    from os.path import join
+    from common import default_index_dir, default_json_dir
 
-    dictionary = make_first_pass(documents) 
-    make_second_pass(documents, dictionary)
+    parser = argparse.ArgumentParser(description="Index builder.")
+    parser.add_argument("--json-dir", type=str, default=default_json_dir())
+    parser.add_argument("--index-dir", type=str, default=default_index_dir())
 
-    with open(DICTIONARY_PATH, 'w') as dict_out:
+    # TODO distinguish between input and output arguments:
+    # add parsing group, for instance.
+    parser.add_argument("-i", "--inverted-index-path", type=str, default=join(default_index_dir(), 'inverted.bin'))
+    parser.add_argument("-w", "--weight-path", type=str, default=join(default_index_dir(), 'weight.bin'))
+    parser.add_argument("-d", "--dictionary", type=str, default=join(default_index_dir(), 'dictionary.txt'))
+
+    args = parser.parse_args()
+
+    documents = list(pathlib.Path(args.json_dir).glob('*.json'))
+    dictionary = make_first_pass(documents)
+    make_second_pass(documents, dictionary, inverted_index_path=args.inverted_index_path, weight_path=args.weight_path)
+
+    with open(args.dictionary, 'w') as dict_out:
         json.dump(dictionary, dict_out, ensure_ascii=False)
 
     return 0
 
 
 if __name__ == '__main__':
-    if len(sys.argv) > 1 and sys.argv[1] == 'test':
-        test()
     sys.exit(main())

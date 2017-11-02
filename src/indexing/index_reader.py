@@ -1,21 +1,29 @@
 #!/usr/bin/env python3
 
 import json
+import argparse
 
 import struct
 import mmap
 
 import sys
 
-from index_builder import INVERTED_INDEX_PATH, INVERTED_ENTRY_SIZE, DICTIONARY_PATH
+from logging import getLogger
+
+from index_builder import INVERTED_ENTRY_SIZE
+
 
 class IndexReader:
+    def __init__(self, inverted_index_path, dictionary_path):
+        self.dictionary_path = dictionary_path
+        self.inverted_index_path = inverted_index_path
+
     def __enter__(self):
-        print(INVERTED_INDEX_PATH)
-        self._inv_idx_fd = open(INVERTED_INDEX_PATH, 'r+b')
+        print(self.inverted_index_path)
+        self._inv_idx_fd = open(self.inverted_index_path, 'r+b')
         self._inv_idx_mmap = mmap.mmap(self._inv_idx_fd.fileno(), 0)
 
-        with open(DICTIONARY_PATH, 'r') as dict_read:
+        with open(self.dictionary_path, 'r') as dict_read:
             self._dictionary = json.load(dict_read)
 
         return self
@@ -41,9 +49,15 @@ class IndexReader:
 
 
 def main():
-    print('Демонстрация работы индекса. Вводите слова, получаете список документов, в которых слово встречается')
+    from os.path import join
+    from common import default_index_dir
+    parser = argparse.ArgumentParser(description='Демонстрация работы индекса.\n'
+                                                 'Вводите слова, получаете список документов, в которых слово встречается')
+    parser.add_argument("-i", "--inverted-index-path", type=str, default=join(default_index_dir(), 'inverted.bin'))
+    parser.add_argument("-d", "--dictionary", type=str, default=join(default_index_dir(), 'dictionary.txt'))
+    args = parser.parse_args()
 
-    with IndexReader() as reader:
+    with IndexReader(inverted_index_path=args.inverted_index_path, dictionary_path=args.dictionary) as reader:
         while True:
             word = input('Введите слово для поиска: ')
             print(reader.get_documents(word))
