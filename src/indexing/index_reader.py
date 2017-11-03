@@ -11,6 +11,7 @@ import sys
 from logging import getLogger
 
 from index_builder import INVERTED_ENTRY_SIZE
+from text_utils import TextExtractor
 
 
 class IndexReader:
@@ -33,6 +34,11 @@ class IndexReader:
         self._inv_idx_fd.close()
 
     def get_documents(self, word):
+        # Apply same normalization as for computing index.
+        word = TextExtractor.get_normal_words_from_text(word)
+        if not word:
+            return []
+        word = word[0]
         if word not in self._dictionary['words']:
             return []
 
