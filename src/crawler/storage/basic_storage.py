@@ -8,7 +8,7 @@ storage_logger = getLogger("storage")
 
 class BasicStorage(ABC):
     def __init__(self):
-        pass
+        self.pages = dict()
 
     @staticmethod
     @abstractmethod
@@ -18,6 +18,18 @@ class BasicStorage(ABC):
     @abstractmethod
     def put_page(self, page_url: str, page_content: str):
         pass
+
+    def put_page_if_not_exist(self, hash, page_info) -> bool:
+        """
+        Puts has into dictionary if not exist
+        :param hash:
+        :param page_info: Page info to save for debug.
+        :return True if insert into dictionary is successful.
+        """
+        if hash in self.pages:
+            return False
+        self.pages[hash] = page_info
+        return True
 
     @staticmethod
     def page_metadata(page_url: str, page_content) -> dict:

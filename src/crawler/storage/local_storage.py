@@ -18,6 +18,15 @@ class LocalStorage(BasicStorage):
             os.makedirs(folder)
 
         metadata = LocalStorage.page_metadata(page_url, page_content)
+
+        # Checking if a duplicate page was crawled earlier.
+        page_hash = metadata['hash']
+        if not self.put_page_if_not_exist(page_hash, (page_content, metadata)):
+            _, duplicate_metadata = self.pages[page_hash]
+            duplicate_url = duplicate_metadata['url']
+            msg = "Saving page {} failed, duplication with page {}".format(metadata['url'], duplicate_url)
+            storage_logger.debug(msg)
+            return
         filepath = "{}/{}".format(folder, metadata['path'])
 
         meta_filepath = filepath + ".meta"
