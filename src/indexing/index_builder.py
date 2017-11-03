@@ -123,6 +123,8 @@ class IndexBuilder:
             with open(weight_path, 'w+b') as weight_index:
                 inverted_index.write(b'\0' * index_size)
                 weight_index.write(b'\0' * index_size)
+                inverted_index.flush()
+                weight_index.flush()
                 with mmap.mmap(weight_index.fileno(), index_size) as weight_mmap:
                     with mmap.mmap(inverted_index.fileno(), index_size) as inverted_mmap:
                         self._make_second_pass_inner(weight_mmap, inverted_mmap)
