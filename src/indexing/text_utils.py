@@ -23,7 +23,7 @@ class TextExtractor:
         'как',
         'для',
         'по',
-        'см',
+        'обувь',
         'а',
         'из',
         'от',
@@ -52,7 +52,6 @@ class TextExtractor:
             cur_words = TextExtractor.tokenize_sentence(sent)
             words.extend(cur_words)
 
-        # Erase all words that do not contain letter
         words = filter(TextExtractor.word_filter.match, words)
         words = map(lambda x: x.lower(), words)
 
@@ -66,7 +65,7 @@ class TextExtractor:
 
     @staticmethod
     def test():
-        text = 'Я "поШЛА" ГулЯТЬ!!!! Как, и И всё??? И всё.'
+        text = 'Я "поШЛА" ГулЯТЬ!!!! Как, и И всё??? И всё. 38 попугаев. 10 см. обувь лучшая'
         sentences = TextExtractor._split_by_sentences(text)
 
         print(sentences)
