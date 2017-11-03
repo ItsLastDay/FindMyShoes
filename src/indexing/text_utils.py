@@ -10,7 +10,11 @@ class TextExtractor:
     # Sentence is something that ends with '.', '!' or '?'
     sentence_splitter = re.compile('\.+|!+|\?+')
 
-    word_filter = re.compile(r'[а-яА-Я]+')
+    # Good words are those that:
+    #   - contain at least one letter (e.g. "какой-никакой", "10.5см")
+    #   - consist entirely of digits (e.g. "38")
+    # This filter is not aggressive on purpose.
+    word_filter = re.compile(r'\w|^\d+$')
 
     stopwords = [
         'на',
@@ -65,7 +69,7 @@ class TextExtractor:
 
     @staticmethod
     def test():
-        text = 'Я "поШЛА" ГулЯТЬ!!!! Как, и И всё??? И всё. 38 попугаев. 10 см. обувь лучшая'
+        text = 'Я "поШЛА" ГулЯТЬ!!!! Как, и И всё??? И всё. 38 попугаев. 10 см. обувь лучшая. Guns and roses'
         sentences = TextExtractor._split_by_sentences(text)
 
         print(sentences)
