@@ -1,0 +1,254 @@
+\section{Data processing and storage}
+\subsection{Overview} 
+During this stage we have to extract meaningful parts from raw data, so we can use it in our search engine later. Our raw data is a HTML page from an online shopping site corresponding to one pair of shoes. We assume that this page describes all there is to know about this particular shoes.
+
+% In a sense of the information theory 
+Conceptually, we divide all information on the page in two parts:
+\begin{itemize}
+\item shoes' attributes, such as its brand, color, type, etc. 
+We can use these attributes as filters, because data is highly structured;
+\item description of the shoes and user reviews. 
+This is unstructured, free-text, opinionated data that can be used in text search.
+\end{itemize}
+
+All our code for this part can be found in the repository\footnote{\url{https://github.com/ItsLastDay/FindMyShoes/tree/indexer_report/src/indexing}}, as well as README files on how to run the indexer. We provide sample raw HTML pages, so that every viewer can run our index builder and make queries to it.
+
+\subsection{Data storage} \label{data_storage}
+Two data storage methods are used.
+
+\subsubsection{Indexing unstructured data} \label{indexing_arch}
+
+We compute \textit{inverse index} from our unstructured data. 
+When you have several documents, \textit{forward index} is just these documents: 
+for each document we know set of all words contained in it.
+
+\textit{Inverse index} is a similar thing: for each word in our corpus\footnote{set of all documents} 
+there is a list of documents containing this word.
+Actually, there can be several lists: list of documents, 
+list of term frequencies\footnote{i.e. number of occurrences} or word positions in these documents.
+
+We currently compute two lists: 
+documents that contain this word and term frequencies in documents. 
+But our architecture is extensible.
+
+Inverted index data is stored partially in text, partially in binary format. 
+There is an entity \textit{dictionary}, which is a text file in JSON\footnote{\label{json}JavaScript Object Notation} format with the following example structure:
+
+\begin{lstlisting}[language=Python]
+{
+  "words": {
+    "хотел": {
+      "global_count": 38,
+      "df": 38,
+      "offset_weight": 0,
+      "offset_inverted": 0
+    },
+    "подкладка": {
+        ...
+    }
+    ...
+}
+\end{lstlisting}
+
+Word-specific fields consist of:
+\begin{itemize}
+    \item \texttt{global\_count} is the total number of occurrences of this word in our corpus;
+    \item \texttt{df} is document frequency, i.e. number of documents this word appears in;
+    \item \texttt{offset\_inverted} is the offset (in bytes) in inverted list binary file, at which the inverted list for this word begins.
+    Notice that inverted list has the same size as \texttt{df}, so we need to store only one offset. 
+    This would not be true for list of word positions in documents;
+    \item \texttt{offset\_weight} has the same meaning as \newline \texttt{offset\_inverted}, but for the list of term frequencies.
+\end{itemize}
+
+The inverted list itself is stored in a binary file (term frequencies list is similar, so we'll only describe one of them). 
+It contains only integers of fixed width (4 bytes). 
+For each word, its inverted list is a continuous segment of integers. 
+There are no separators, because we know all extents of any word's list using the \textit{dictionary}. 
+In order to build this index, we use two-pass algorithm (meaning that all documents are read twice):
+\begin{enumerate}
+    \item compute the total size of inverted list (that is, sum of all term frequencies), compute offsets of each word's inverted list part
+    \item fill the index with actual data
+\end{enumerate}
+
+Code for the index building can be found in Index Builder script\cref{IndexBuilder}.
+
+In order to read from or write to these binary files we use \texttt{mmap}\footnote{\url{https://docs.python.org/3.5/library/mmap.html}} library. 
+It is a low-level feature that allows to map the whole file into the address space of a process. This file appears as a continuous segment of memory, so we are able to do random reads and writes (as opposed to sequential reading from regular files). Moreover, mmap supports laziness: if we do not touch some part of the file, it won't be even loaded from disk to memory.
+
+Example of reading from index can be found in repo\footnote{\url{https://github.com/ItsLastDay/FindMyShoes/blob/indexer_report/src/indexing/index_reader.py\#L17}}.
+
+\subsubsection{Database for structured data}
+We use MongoDB\footnote{\label{mongo}\url{https://www.mongodb.com/}} for storing all structured data in the way described below.
+
+% Do we really need parentheses here?
+\subsubsection{Structured attributes}
+\begin{itemize}
+    \item \texttt{name} as shown by e-shop (e.g. \newline \texttt{"Ботинки ECCO HOLTON 621174/01001"})
+    \item \texttt{brand} (e.g. \texttt{"ECCO"})
+    \item \texttt{type} (e.g. \texttt{"ботинки"})
+    \item \texttt{colors} list of colors (e.g. \texttt{"белый"}, \texttt{"чёрный"})
+    \item \texttt{price} (in rubles, e.g. \texttt{"11000"})
+    \item \texttt{sizes} list of sizes in the Russian system (e.g. \texttt{39}, \texttt{42)}
+    \item \texttt{gender} expected gender of a shoe wearer, as shown by e-shop (e.g. \texttt{"женская обувь"}, \texttt{"мужская"})
+\end{itemize}
+
+\subsubsection{Unstructured}
+\begin{itemize}
+    \item \texttt{description} shoes description, as shown by e-shop
+    \item \texttt{reviews} list of user review texts
+\item \texttt{attributes} dictionary of attributes that do not fall in "structured" category (or, at least, we don't know how to extract them from a certain e-shop). For example, those attributes can be one of the following: 
+        \begin{itemize}
+            \item 'подкладка', e.g. 'мех'
+            \item 'страна', e.g. 'Китай'
+            \item ...
+        \end{itemize}
+\end{itemize}
+
+Example document of MongoDB\cref{mongo} collection where we store ext\-rac\-ted data can be found in our repository\footnote{\url{https://github.com/ItsLastDay/FindMyShoes/tree/indexer_report/data/mongo-document-sample.json}}. MongoDB uses JSON format for all data.
+
+\subsection{Data extraction}
+Each e-shop website has its own way of structuring HTML. For example, the name of the product (i.e. shoes) can be written in \texttt{<div id ="product\_name">} tag. One can make queries like \textit{"get all <div> tags that has <p> as parent"} using CSS selectors\footnote{\url{https://www.w3schools.com/cssref/css_selectors.asp}}, in this case \texttt{"p div"}. CSS selectors also support id's and other attributes of HTML tags.
+
+We analyzed each e-shop independently and came up with CSS selectors that refer to the meaningful information on the page. In general, it was structured like this: 
+\begin{itemize}
+    \item predefined places for major pieces of information, e.g. "div h1.product-name" selector for product name
+    \item lists of variable size for minor attributes (like type of clasp), e.g. "strong.product-attribute-name" for all attribute names
+\end{itemize}
+
+Interestingly, this information was slightly different for different e-shops: for instance, one website shows "Country" in a predefined position, another writes it in a list of various attributes.
+
+You can explore all our CSS selectors here
+\footnote{\url{https://github.com/ItsLastDay/FindMyShoes/blob/indexer_report/src/indexing/domain_specific_extractor.py\#L151}}.
+
+\subsection{Data processing} \label{data_processing}
+Structured information of a concrete product page are stored in the database as is. But unstructured data has to be preprocessed with the following pipeline:
+\begin{itemize}
+\item tokenization;
+\item cleaning;
+\item stop-word removal;
+\item stemming.
+\end{itemize}
+
+\subsubsection{Tokenization}
+In order to extract separate words from our reviews and a good's description we use the algorithm:
+\begin{enumerate}
+    \item Divide text into sentences with regular expressions match\-ing one or more sentence ending as \texttt{'.'}, \texttt{'!'}, \texttt{'?'}.
+    \item Tokenize obtained sentences with \texttt{ToktokTokenizer}\footnote{\url{http://www.nltk.org/api/nltk.tokenize.html\#nltk.tokenize.toktok.ToktokTokenizer}} from NTLK library\cite{nltk_book}. 
+\end{enumerate}
+
+\subsubsection{Cleaning}
+Here we filter out non-words tokens, e.g. stray punctuation. 
+We preserve digits, because shoe sizes and parameters like heel size can be significant when choosing the right shoes.
+
+\subsubsection{Stop-word removal}
+We use dictionary-based stop-word removal, filtering out words from the following list:
+\begin{itemize}
+\item \texttt{'на'},
+\item \texttt{'и'},
+\item \texttt{'в'},
+\item \texttt{'не'},
+\item \texttt{'очень'},
+\item \texttt{'но'},
+\item \texttt{'с'},
+\item \texttt{'как'},
+\item \texttt{'для'},
+\item \texttt{'по'},
+\item \texttt{'а'},
+\item \texttt{'из'},
+\item \texttt{'от'},
+\item \texttt{'без'},
+\item \texttt{'у'},
+\item \texttt{'к'},
+\item \texttt{'что'},
+\item \texttt{'обувь'}.
+\end{itemize}
+Those words were chosen from the current set of most frequent words in our documents, 
+as these words are thought to be meaningless for our search engine.
+
+\subsubsection{Stemming}
+Our stemming stage is algorithmic-based, using Porter stemmer 
+\texttt{RussianStemmer}\footnote{\url{http://www.nltk.org/api/nltk.stem\#nltk.stem.snowball.RussianStemmer}} from NLTK library \cite{nltk_book}.
+The stemmer's formal description is provided in \cite{RussianStemmer}.
+
+\subsection{Architecture}
+In this stage we decided to use action-driven ap\-proach, split\-ting all our tasks into several scripts.
+
+\subsubsection{Data Extractor}
+\footnote{\url{https://github.com/ItsLastDay/FindMyShoes/tree/indexer_report/src/indexing/data_extractor.py}}
+Small routine that reads all of our HTML files in parallel, extract meaningful information using Domain-Specific Extractor and stores it in JSON files.
+
+\subsubsection{Domain-Specific Extractor}
+    \footnote{\url{https://github.com/ItsLastDay/FindMyShoes/tree/indexer_report/src/indexing/domain_specific_extractor.py}}
+    Provides abstract class \texttt{AbstractDataExtractor}\footnote{\label{AbstractDataExtractor}\url{https://github.com/ItsLastDay/FindMyShoes/tree/indexer_report/src/indexing/domain_specific_extractor.py}} for parsing product data from a page's HTML code. Central method \texttt{parse\_html}\footnote{\url{https://github.com/ItsLastDay/FindMyShoes/blob/master/src/indexing/domain_specific_extractor.py\#L60}} performs some HTML preprocessing, such as:
+    \begin{itemize}
+        \item stripping JavaScript code;
+        \item leaving page structure as it is, i.e. <head>, <html>, <title>;
+        \item removing CSS styling.
+    \end{itemize}
+    \texttt{parse\_html} follows the \textit{Template method} pattern. It calls all other methods 
+that populate dictionary in strict order. De\-scen\-dants can override all methods. It is meaningful for
+    some site-specific processing. Otherwise, descendants should only override CSS selectors.
+    Currently, there are several im\-ple\-men\-ta\-tion for \texttt{AbstractDataExtractor}\cref{AbstractDataExtractor} as follows:
+    \begin{itemize}
+        \item \texttt{BonprixExtractor}\footnote{\url{https://github.com/ItsLastDay/FindMyShoes/tree/indexer_report/src/indexing/domain_specific_extractor.py\#L151}} for \url{www.bonprix.ru}.
+        
+        \item \texttt{RespectExtractor}\footnote{\url{https://github.com/ItsLastDay/FindMyShoes/tree/indexer_report/src/indexing/domain_specific_extractor.py\#L182}} for \url{respect-shoes.ru}
+    
+        \item \texttt{AntonioExtractor}\footnote{\url{https://github.com/ItsLastDay/FindMyShoes/tree/indexer_report/src/indexing/domain_specific_extractor.py\#L201}} for \url{ru.antoniobiaggi.com}
+        
+        \item \texttt{AsosExtractor}\footnote{\url{https://github.com/ItsLastDay/FindMyShoes/tree/indexer_report/src/indexing/domain_specific_extractor.py\#L230}} for \url{www.asos.com}
+        
+        \item \texttt{LamodaExtractor}\footnote{\url{https://github.com/ItsLastDay/FindMyShoes/tree/indexer_report/src/indexing/domain_specific_extractor.py\#L251}} for \url{www.lamoda.ru}
+        
+        \item \texttt{EccoExtractor}\footnote{\url{https://github.com/ItsLastDay/FindMyShoes/tree/indexer_report/src/indexing/domain_specific_extractor.py\#L269}} for \url{www.ecco-shoes.ru}
+
+    \end{itemize}
+    Obviously not all attributes can be extracted for each site, so our implementations provides only those virtual methods that apply.
+\subsubsection{Index Buider}
+\footnote{\label{IndexBuilder}\url{https://github.com/ItsLastDay/FindMyShoes/tree/indexer_report/src/indexing/index_builder.py}}
+Simple class with two key methods that correspond to two passes of indexing algorithm as de\-scribed in 
+\ref{indexing_arch}. Stores \textit{dictionary} as an instance variable, so that pre\-serv\-ing data between passes is easy.
+
+% Это так, утилитка, нечего там описывать
+%\subsubsection{Index Reader}
+%\footnote{\url{https://github.com/ItsLastDay/FindMyShoes/tree/indexer_report/src/indexing/index_reader.py}}
+%\todo{describe}
+
+\subsubsection{Database storer}
+\footnote{\url{https://github.com/ItsLastDay/FindMyShoes/tree/indexer_report/src/indexing/database_storer.sh}}
+Currently, it is a bash script for loading all JSON\cref{json} files created with Data Extractor.
+
+\subsubsection{Text utilities}
+\footnote{\url{https://github.com/ItsLastDay/FindMyShoes/tree/indexer_report/src/indexing/text_utils.py}}
+Implements \texttt{TextExtractor} class for getting pre\-pro\-cessed words from raw text, as described in sections \ref{data_storage}, \ref{data_processing}.
+
+\subsection{Problems}
+\begin{itemize}
+\item shoes description on \url{www.ecco-shoes.ru} is inside <noindex> tag. If we followed this restriction, 
+we would not be able to search effectively from this website;
+
+\item \url{ru.antoniobiaggi.com} has awful HTML markup. For in\-stance, they have several tags with 
+id \newline \texttt{"color\_to\_pick\_list"}, whereas in "good" HTML you should have zero or one tags with particular name.
+That makes parsing the site harder;
+
+\item we looked at the pages we got from the crawling stage. It appeared that about 10\% of them were actual shoes.
+So we had to rethink some parts of our crawler, so that it only stores "relevant" pages (where "relevance" is 
+mea\-sured by matching URL's by regular expressions) and traverses pages in right direction. 
+For example, on \url{lamoda.ru} there
+are many pages, about 2 million, whereas only 25k of them are shoes, so we had to start from shoes catalogue instead
+of main page;
+
+\item we still need unification of several enumerable attributes, stated differently on different sites, 
+i.e. \texttt{gender} can be represented as \textit{“женская обувь”} in one place, 
+and as \textit{“для женщин”} in another. The same applies to attributes' names, i.e. \textit{“Страна”} vs. \textit{“страна-производитель”}, and so on;
+
+\item in a certain moment we both come to conclusion that we need a more thorough mutual code review, 
+as there was a misunderstanding using the other person's code that lead to bugs.
+We have no opportunity of pair pro\-gram\-ming, 
+so we need to be more descriptive in our documents and gradually come to unified coding style;
+
+\item we had a hot discussion on how to do words filtering: 
+do we need to leave numbers or words with both al\-pha\-bet\-i\-cal and numerical characters?
+As we do not use any complex data processing techniques now (such as n-gram\footnote{\url{https://en.wikipedia.org/wiki/N-gram}}), 
+we decided to postpone solving these ambiguities.
+\end{itemize}

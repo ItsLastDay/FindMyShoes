@@ -1,42 +1,8 @@
-\documentclass[format=sigconf]{acmart}
+\documentclass[sigconf]{acmart}
+% \usepackage[]{biblatex}
 \usepackage[utf8]{inputenc}
 
-% \usepackage{a4wide}
-% \usepackage{multirow}
-% \usepackage{graphicx}
-% \usepackage{amssymb,amsmath}
-% \usepackage{paralist}
-% \usepackage{subfigure}
-% \usepackage{color}
-% \usepackage{booktabs}
-% \usepackage[square,comma,numbers,sort&compress,sectionbib]{natbib}
-\usepackage[]{hyperref}
-% \hypersetup{colorlinks=true,
-%     linkcolor=red,          % color of internal links (change box color with linkbordercolor)
-%     citecolor=green,        % color of links to bibliography
-%     filecolor=magenta,      % color of file links
-%     urlcolor=cyan}
-% \usepackage{tablefootnote}
-% \usepackage{lscape}
-
-\usepackage{fontspec} % loaded by polyglossia, but included here for transparency 
-\usepackage{polyglossia}
-\setmainlanguage{russian} 
-\setotherlanguage{english}
-
-%\newfontfamily{\cyrillicfonttt}{Courier New}
-\newfontfamily\cyrillicfont{PT Serif}[Script=Cyrillic]
-\newfontfamily\cyrillicfontsf{PT Sans}[Script=Cyrillic]
-\newfontfamily\cyrillicfonttt{PT Mono}[Script=Cyrillic]
-
-%\usepackage[T2A]{fontenc}
-%\usepackage[utf8]{inputenc}
-%\usepackage[russian,english]{babel}
-%\selectlanguage{russian}
-
-\usepackage{longtable}
-
-\newcommand{\todo}[1]{\textcolor{red}{\textbf{TODO:} #1}}
+\input{preamble.tex}
 
 \title{Information Retrieval}
 \subtitle{Project report}
@@ -61,108 +27,26 @@ There is a problem with searching shoes when you need to buy one. We decided to 
 Desired functionality: given a query with shoes description, like \textit{"туфли спортивные с закрытым носом"}, show only re\-le\-vant e-shop pages.
 
 Features (may change later during development):
-\begin{enumerate}
-    \item system understands queries like \textit{"туфли с закрытым носом"} and \textit{"туфли на танкетке"} as different, and results in precisely relevant pages with user-specified filters applied;
-    \item filtering on preferred e-shops;
-    \item filtering and sorting by price.
-\end{enumerate}
-
-\section{Data acquisition}
 \subsection{Source code}
     We have our repository at GitHub\footnote{\url{https://github.com/ItsLastDay/FindMyShoes}}. 
     Code is in Python 3.5 and package requirements are stored in \texttt{requirements.txt}
     
-\subsection{Architecture}
-    We aimed for the distributed crawling from the start, so our architecture was largely influenced by it. Also, we wanted com\-po\-nents to be abstracted from each other. For those interested package diagrams were generated and put into docs\footnote{\url{https://github.com/ItsLastDay/FindMyShoes/tree/master/docs}}.
-    
-    \subsubsection{Main package}
+\begin{enumerate}
+    \item system understands queries like \textit{"туфли с закрытым носом"} and \textit{"туфли на танкетке"} as different, and re\-sults in precisely relevant pages with user-specified fil\-ters applied;
+    \item filtering on preferred e-shops;
+    \item filtering and sorting by price.
+\end{enumerate}
 
-    \begin{itemize}
-    \item \texttt{Page}\footnote{\url{https://github.com/ItsLastDay/FindMyShoes/blob/master/src/crawler/page.py\#L19}} - entity that represents one page. It knows whether the page was downloaded, what are its children (sites that this page refers to inside its domain) and its last fetch time.
-    
-    \item \texttt{DomainQueue}\footnote{\url{https://github.com/ItsLastDay/FindMyShoes/blob/master/src/crawler/queues.py\#L9}} - shared queue of seed domains. All workers read from it. Each worker gets one domain, removes it from the queue and starts breadth-first search (BFS). 
-    Access to this queue is not protected by mutexes, because it is very rare: one worker spends most of its time doing BFS rather than reading new domains. So, we treat the situation when two workers are reading from DomainQueue simultaneously as low-probable.
-    
-    \item \texttt{CrawlQueue}\footnote{\url{https://github.com/ItsLastDay/FindMyShoes/blob/master/src/crawler/queues.py\#L51}} - worker-private queue of pages. Each worker performs Breadth-First Search from the received seed domain. Each worker operates in Firewall-mode: only crawls pages from one domain at a time.
-    \end{itemize}
-    
-    \subsubsection{Package \texttt{'storage'}}
-    \begin{itemize}
-    \item \texttt{BasicStorage}\footnote{\url{https://github.com/ItsLastDay/FindMyShoes/blob/master/src/crawler/storage/basic_storage.py\#L9}} - abstraction of storage. It has its implementations as:
-    \item \texttt{LocalStorage} and
-    \item \texttt{GDriveStorage}.
-    \end{itemize}
-    
-    Along with page, meta-information is stored: URL, size, path to file. Storage also filters duplicate pages by content using MD5 hash (it is sufficiently long to not bother about hash collisions, also it is reasonably fast).
-    
-    \subsubsection{Package \texttt{'robots'}}
-    \begin{itemize}
-    \item \texttt{RobotsProvider}\footnote{\url{https://github.com/ItsLastDay/FindMyShoes/blob/master/src/crawler/robots/provider.py\#L13}} - static entity that knows about \texttt{robots.txt} of certain domains. Functionality of \texttt{RobotsProvider} is implemented through usage of:
-    \item \texttt{MemberGroupData}, which corresponds to rule for specific member group at \texttt{robots.txt}), and 
-    \item \texttt{RobotsParser} that generally converts raw text from \texttt{robots.txt} into viable parameters.
-    \end{itemize}
+\input{data_acquisition.tex}
 
-\subsection{Politeness}
-Crawlers can retrieve data much quicker than human searchers, so they can influence badly on a site performance.
-In order not to bother any site with our crawler's activity and have no impact on its performance and throughput we use several commonly used guidelines.
+\input{data_processing.tex}
 
-\subsubsection{Robots exclusion protocol}
-\begin{itemize}
-\item Our crawler does not query a page's children if it contains \texttt{nofollow} word in tag's \texttt{<meta name="robots">} key \texttt{content}.
-\item We neither fetch nor store pages with \texttt{noindex} in the tag mentioned above.
-\end{itemize}
+% https://www.sharelatex.com/learn/Bibliography_management_with_natbib
+\medskip
 
-\subsubsection{Server-wise exclusion}
-\begin{itemize}
-    \item We do not request any pages declared under  \texttt{Disallow} directive in \texttt{robots.txt} for common member group (\texttt{user-agent: *}).
-    \item We respect site performance diversity and use \texttt{'crawl-delay'} parameter in \texttt{robots.txt} for setting pause between consecutive queries. If it is not present, we pause for 1 second between queries.
-\end{itemize}
-
-\subsubsection{Crawler identification}
-\begin{itemize}
-    \item Our crawler declares itself as \texttt{'findmyshoes\_bot'} in HTTP requests to server.
-\end{itemize}
-
-\subsection{Flow}
-    There can be many participating processes in our crawling. 
-    Each computer must have a list of seed domains assigned and placed into \texttt{domain\_queue.txt} file next to \texttt{crawler.py}. One can start arbitrary number of workers with \texttt{python3 crawler.py}. Then, firewall strategy will took place and every domain will be assigned to one specific worker (so that one worker still can crawl several domains if it's fast enough).
-    
-    Workers have an algorithm, as follows:
-    \begin{enumerate}
-        \item read line from \texttt{domain\_queue.txt} and erase that line from the queue. If the queue is empty, exit.
-        \item do a BFS on this domain, maintaining delays and storing pages with \texttt{storage.BasicStorage} instance. Each page is checked whether it can be crawled or stored.
-        \item return to step 1
-    \end{enumerate}
-
-\subsection{Problems}
-
-\begin{itemize}
-\item Google Drive for storing pages was overall a bad idea. It works slower than storing pages locally, because each store is >= 1 HTTP-requests. 
-Also, GDrive API has rate limits. We managed to store about 9.000 pages in 6 hours, whereas storing pages locally could achieve > 100.000 in one night run.
-
-\item Moreover, there were problems with storing Russian letters through GDrive API, so we stored base64-encoded pages. And the API seems not to be well-documented itself.
-
-\item We tried to use standard solutions for \texttt{robots.txt} parser, like \texttt{urllib.robotparser}. 
-But they surpisingly failed even on first test page\footnote{\url{https://www.google.com/maps/reserve/partners}}, which is allowed to be crawled in corresponding \texttt{robots.txt}\footnote{\url{https://www.google.com/robots.txt}} but not-fetchable as those parsers say. 
-% \item There is a standard\footnote{} for \texttt{robots.txt} files. But it's old to which no one seems to follow: neither big crawler-makers like Google or Yandex nor robots.txt writers and site maintainers.
-\end{itemize}
-
-
-\subsection{Results}
-% \todo how many pages we crawled in what amount of time; what sites we used (ALL OF THEM) and where we got them (from expert Anya); what features we support (distributed crawling, politeness)
-
-At night 115793 pages were downloaded while running 3 crawlers on several different domains, as our expert colleague proposed:
-\begin{itemize}
-    \item \url{https://www.bonprix.ru/}
-    \item \url{https://www.lamoda.ru/}
-    \item \url{http://www.asos.com/}
-    \item \url{http://www.ecco-shoes.ru/}
-    \item \url{https://respect-shoes.ru/} %- вроде гугл ищет, но описание просто жуть как аскетично (просто 1
-    \item \url{https://ru.antoniobiaggi.com/} % - вроде robots.txt разрешает столько же, сколько и яндексу
-    \item \url{http://www.rieker.com/russisch}
-    \item \url{https://www.net-a-porter.com/ru/en/}
-\end{itemize}
-
-Our crawler proves itself to be polite and distributed. Besides, we crawled more than 100k documents. Therefore, we hope for an excellent mark.
+\selectlanguage{english}
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{sample} 
 
 \end{document}
+

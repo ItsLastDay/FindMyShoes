@@ -1,0 +1,75 @@
+% workaround for a lot of warnings.
+\makeatletter
+\def\MT@is@composite#1#2\relax{%
+  \ifx\\#2\\\else
+    \expandafter\def\expandafter\MT@char\expandafter{\csname\expandafter
+                    \string\csname\MT@encoding\endcsname
+                    \MT@detokenize@n{#1}-\MT@detokenize@n{#2}\endcsname}%
+    % 3 lines added:
+    \ifx\UnicodeEncodingName\@undefined\else
+      \expandafter\expandafter\expandafter\MT@is@uni@comp\MT@char\iffontchar\else\fi\relax
+    \fi
+    \expandafter\expandafter\expandafter\MT@is@letter\MT@char\relax\relax
+    \ifnum\MT@char@ < \z@
+      \ifMT@xunicode
+        \edef\MT@char{\MT@exp@two@c\MT@strip@prefix\meaning\MT@char>\relax}%
+          \expandafter\MT@exp@two@c\expandafter\MT@is@charx\expandafter
+            \MT@char\MT@charxstring\relax\relax\relax\relax\relax
+      \fi
+    \fi
+  \fi
+}
+% new:
+\def\MT@is@uni@comp#1\iffontchar#2\else#3\fi\relax{%
+  \ifx\\#2\\\else\edef\MT@char{\iffontchar#2\fi}\fi
+}
+\makeatother
+
+% \usepackage{a4wide}
+% \usepackage{multirow}
+% \usepackage{graphicx}
+% \usepackage{amssymb,amsmath}
+% \usepackage{paralist}
+% \usepackage{subfigure}
+% \usepackage{color}
+% \usepackage{booktabs}
+% \usepackage[square,comma,numbers,sort&compress,sectionbib]{natbib}
+\usepackage[]{hyperref}
+% \hypersetup{colorlinks=true,
+%     linkcolor=red,          % color of internal links (change box color with linkbordercolor)
+%     citecolor=green,        % color of links to bibliography
+%     filecolor=magenta,      % color of file links
+%     urlcolor=cyan}
+% \usepackage{tablefootnote}
+% \usepackage{lscape}
+
+\usepackage{fontspec} % loaded by polyglossia, but included here for transparency 
+\usepackage{polyglossia}
+\setmainlanguage{russian} 
+\setotherlanguage{english}
+
+%\newfontfamily{\cyrillicfonttt}{Courier New}
+\newfontfamily\cyrillicfont{PT Serif}[Script=Cyrillic]
+\newfontfamily\cyrillicfontsf{PT Sans}[Script=Cyrillic]
+\newfontfamily\cyrillicfonttt{PT Mono}[Script=Cyrillic]
+
+%\usepackage[T2A]{fontenc}
+%\usepackage[utf8]{inputenc}
+%\usepackage[russian,english]{babel}
+%\selectlanguage{russian}
+
+\usepackage{longtable}
+
+\newcommand{\todo}[1]{\textcolor{red}{\textbf{TODO:} #1}}
+
+% \usepackage{footnote}
+
+
+% https://tex.stackexchange.com/questions/10102/multiple-references-to-the-same-footnote-with-hyperref-support-is-there-a-bett/10116#10116
+\usepackage{cleveref}
+% \usepackage{cleveref}[2012/02/15]% v0.18.4; 
+% 0.16.1 of May 2010 would be sufficient, but what is the exact day?
+\crefformat{footnote}{#2\footnotemark[#1]#3}
+
+\usepackage{listings}
+\lstset{language=Python}
