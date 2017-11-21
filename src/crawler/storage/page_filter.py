@@ -33,7 +33,7 @@ class PageFilter(ABC):
         antoniobiaggi_filter.append(RegexpPageFilter(rs))
 
         lamoda_filter = PageFilter._get_domain_filters('https://www.lamoda.ru')
-        lamoda_filter.append(RegexpPageFilter(r'/\w/\w{12}/shoes-.*'))
+        lamoda_filter.append(RegexpPageFilter(r'/p/\w{12}/shoes-.*'))
         lamoda_filter.append(BreadcrumbPageFilter('div.breadcrumbs > span > a > span', 'обувь'))
 
         asos_filter = PageFilter._get_domain_filters('http://www.asos.com')

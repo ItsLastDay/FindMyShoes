@@ -123,12 +123,14 @@ class Page:
                 path = '/' + path
             return path
 
-        return list(map(lambda path: Page(self._domain_url, path),
-                        filter(lambda path: path is not None and path.startswith('/'),
+        valid_paths = list(filter(lambda path: path is not None and path.startswith('/'),
                                map(get_path_from_link, self._soup.find_all('a'))
                                )
-                        )
-                    )
+                      )  
+
+        print('valid paths: {}'.format(valid_paths))
+
+        return list(map(lambda path: Page(self._domain_url, path), valid_paths))
 
     def get_cleaned_response(self) -> str:
         """Retrieve page's html content.
