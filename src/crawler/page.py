@@ -26,13 +26,19 @@ class Page:
         if not path.startswith('/'):
             raise PageException("page path should start with '/'")
 
-        scheme, netloc, domain_path = parse.urlsplit(domain_url)[:3]
+        scheme, netloc, domain_path, query = parse.urlsplit(domain_url)[:4]
+        if query:
+            domain_path += '?' + query
         if netloc.endswith('/'):
             netloc = netloc[:-1]
         if domain_path.startswith('/'):
             domain_path = domain_path[1:]
         if len(domain_path) > 0:
             path = "/{}{}".format(domain_path, path)
+            if query != '':
+                # 200: https://www.lamoda.ru/c/15/shoes-women/?sitelink=topmenuW&l=3&page=1 
+                # 400: https://www.lamoda.ru/c/15/shoes-women/?sitelink=topmenuW&l=3&page=1/
+                path = path.rstrip('/')
 
         self._domain_url = "{}://{}".format(scheme, netloc)
         assert path.startswith('/') and (len(path) == 1 or path[1] != '/')
@@ -128,7 +134,11 @@ class Page:
                                )
                       )  
 
-        print('valid paths: {}'.format(valid_paths))
+        # Dirty hack for lamoda: start from pages of the form
+        # https://www.lamoda.ru/c/15/shoes-women/?sitelink=topmenuW&l=3&page=XXX
+        # and go only to product pages.
+        if 'lamoda' in self._domain_url:
+            valid_paths = list(filter(lambda path: path.startswith('/p/'), valid_paths))
 
         return list(map(lambda path: Page(self._domain_url, path), valid_paths))
 
