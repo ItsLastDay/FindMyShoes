@@ -138,7 +138,11 @@ class Page:
         # https://www.lamoda.ru/c/15/shoes-women/?sitelink=topmenuW&l=3&page=XXX
         # and go only to product pages.
         if 'lamoda' in self._domain_url:
-            valid_paths = list(filter(lambda path: path.startswith('/p/'), valid_paths))
+            # For every boots, there are pages for each size, like
+            # https://www.lamoda.ru/p/lo019awxqe31/shoes-lostink-valenki/?sku=LO019AWXQE31E370
+            # They are not 100% identical, but in essense, they are.
+            valid_paths = list(filter(lambda path: path.startswith('/p/')
+                and '?sku=' not in path, valid_paths))
 
         return list(map(lambda path: Page(self._domain_url, path), valid_paths))
 

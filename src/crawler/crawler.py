@@ -10,6 +10,8 @@ from queues import DomainQueue, CrawlQueue
 from storage import LocalStorage, GDriveStorage
 from robots import RobotsProvider
 
+from url_getter import URLGetter
+
 
 main_crawler_logger = getLogger("main_crawler")
 
@@ -73,7 +75,8 @@ def main():
                         # Seen errors: 
                         # apiclient.errors.HttpError: <HttpError 403 when requesting https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&alt=json returned "User rate limit exceeded.">
                         # requests.exceptions.ConnectionError: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response',))
-                        # TODO renew URLGetter session.
+                        URLGetter.restart_sesison()
+                        print('sleeping')
                         time.sleep(10)
                         if not hasattr(cur_page, "_fail_count"):
                             cur_page._fail_count = 0
