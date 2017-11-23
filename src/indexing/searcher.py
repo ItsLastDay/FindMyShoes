@@ -8,6 +8,7 @@ import math
 from pathlib import Path
 
 import json
+from text_utils import TextExtractor
 
 from pymongo import MongoClient
 
@@ -16,6 +17,14 @@ logger = getLogger('searcher')
 from index_reader import IndexReader
 from text_utils import TextExtractor
 from index_builder import IndexBuilder
+
+
+def make_colors_dict(colors):
+    res = dict()
+    for color in colors:
+        res[TextExtractor.get_normal_words_from_text(color)[0]] = color
+
+    return res
 
 
 class QueryProcessor:
@@ -33,6 +42,13 @@ class QueryProcessor:
         # Using data imported by `database_storer.sh`.
         self._db = self._db_client.findmyshoes
         self._db_docs = self._db.data
+
+        self._colors = make_colors_dict([
+            'белый', 
+            'бордовый', 
+            'чёрный', 'черный',
+            'розовый'
+            ])
 
     def preprocess(self, query: str) -> [str]:
         """
@@ -72,6 +88,9 @@ class QueryProcessor:
         # https://stackoverflow.com/a/18148872/5338270
         return list(map(lambda x: x['url'], self._db_docs.find({ 'sizes': str(desired_size) })))
 
+    def get_urls_match_color(self, color):
+        return list(map(lambda x: x['url'], self._db_docs.find({ 'colors': color })))
+
     def ranked_documents(self, terms: [str]) -> [str, float]:
         for term in terms:
             if self._index_reader.get_word_entry(term) is None:
@@ -98,6 +117,23 @@ class QueryProcessor:
                     good_urls &= set(self.get_urls_match_size(size))
             except ValueError:
                 pass
+
+        # Filter by color. Use dict of colors that can occur.
+        # For each found term that is a color, boost ranking 
+        # of documents that match this color.
+        # We cannot simply drop documents that do not match,
+        # because colors can be represented differently
+        # on different sites (e.g. I saw "белый\чёрный" instead
+        # of ["белый", "чёрный"]).
+        boosted_urls = set()
+        for term in terms:
+            if term in self._colors:
+                boosted_urls |= set(self.get_urls_match_color(self._colors[term]))
+
+        for i in range(len(ranked_docs)):
+            if ranked_docs[i][0] in boosted_urls:
+                ranked_docs[i] = (ranked_docs[i][0], ranked_docs[i][1] * 2)
+
 
         return list(filter(lambda x: x[0] in good_urls, ranked_docs))
 
@@ -127,7 +163,7 @@ if __name__ == '__main__':
             logger.debug("Extracted terms: " + str(terms))
             documents_ranks = query_processor.ranked_documents(terms)
             logger.debug("Documents found: {}".format(len(documents_ranks)))
-            logger.debug("Documents found: {}".format(documents_ranks))
+            #logger.debug("Documents found: {}".format(documents_ranks))
             filtered_docs = query_processor.filtered_documents(terms, documents_ranks)
             logger.debug("Documents after filtering: {}".format(len(filtered_docs)))
             best_documents_ranks = sorted(filtered_docs, key=lambda dr: dr[1], reverse=True)[:limit]
@@ -138,6 +174,7 @@ if __name__ == '__main__':
         # process_query("швы")
         # process_query("сочные швы")
         process_query('24 балетки')
+        process_query('чёрные кеды')
         while True:
             query_string = input('Введите запрос: ')
             process_query(query_string)

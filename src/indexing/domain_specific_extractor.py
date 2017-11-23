@@ -17,7 +17,8 @@ def extractor_for(domain):
 def _get_single_value(selector_result):
     if not selector_result:
         return None
-    return selector_result[0]
+    # "&nbsp" seen on bonprix
+    return selector_result[0].replace('&nbsp', '')
 
 def _get_list_of_values(selector_result):
     return selector_result
