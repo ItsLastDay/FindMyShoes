@@ -52,7 +52,7 @@ class QueryProcessor:
             if word_entry is None: continue
             df = word_entry.get('df')
             idf = math.log2((self._ndocs - df + QueryProcessor.IDF_SMOOTH) / (df + QueryProcessor.IDF_SMOOTH))
-            score += idf * fqd * (self._k1 + 1) / (fqd + self._k1 * (1 - self._b + self._b * self._ndocs / self._avgdl))
+            score += idf * fqd * (self._k1 + 1) / (fqd + self._k1 * (1 - self._b + self._b * len(doc_words) / self._avgdl))
         return score
 
     def ranged_documents(self, terms: [str]) -> [str, float]:
