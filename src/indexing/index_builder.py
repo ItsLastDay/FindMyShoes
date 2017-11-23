@@ -25,12 +25,17 @@ class IndexBuilder:
 
     @staticmethod
     def _get_words_from_path(doc_path):
-        json_data = None
         with doc_path.open() as f:
             json_data = json.load(f)
 
-        product_description = '{}\n{}'.format(json_data.get('description', ''), 
-                                              '\n'.join(json_data.get('reviews', '')))
+        attributes = json_data.get('attributes')
+        if attributes is not None:
+            attributes_text = ",".join("{}:{}".format(name, value) for (name, value) in attributes.items())
+        else:
+            attributes_text = ""
+        product_description = '{}\n{}\n'.format(json_data.get('description', ''),
+                                              '\n'.join(json_data.get('reviews', '')),
+                                              attributes_text)
         return TextExtractor.get_normal_words_from_text(product_description)
 
 
@@ -57,10 +62,12 @@ class IndexBuilder:
         result_dict['documents'] = list(map(lambda path: path.name, self.documents))
         words_dict = dict()
         result_dict['words'] = words_dict
+        avgdl = 0.0 # average document length
 
         for i, doc in enumerate(self.documents):
             print('Reading document {}'.format(i))
             words = self._get_words_from_path(doc)
+            avgdl += len(words)
 
             added_df_words = set()
             for word in words:
@@ -72,6 +79,8 @@ class IndexBuilder:
                     words_dict[word]['df'] += 1
                     added_df_words.add(word)
 
+        avgdl /= len(self.documents)
+        result_dict['avgdl'] = avgdl
         print('Scanned all documents')
 
         current_offset = 0
@@ -150,7 +159,6 @@ def main():
     index_builder = IndexBuilder(documents)
     index_builder.make_first_pass(args.dictionary)
     index_builder.make_second_pass(inverted_index_path=args.inverted_index_path, weight_path=args.weight_path)
-
 
     return 0
 

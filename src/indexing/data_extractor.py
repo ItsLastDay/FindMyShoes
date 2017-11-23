@@ -35,7 +35,9 @@ def extract_and_write_json(meta_file, json_dir, limit_by_domain=inf):
     """Given meta-information file about page, extract and store all interesting data from it.
     """
     # Example info: 
-    # {'hash': 'a4da8866c9bb2fabe5abfda701a6e8ac', 'url': 'https://www.bonprix.ru/produkty/tufli-krasnyj-971149/', 'path': '_produkty##tufli-krasnyj-971149##', 'size': 612326}
+    # {'hash': 'a4da8866c9bb2fabe5abfda701a6e8ac',
+    # 'url': 'https://www.bonprix.ru/produkty/tufli-krasnyj-971149/',
+    # 'path': '_produkty##tufli-krasnyj-971149##', 'size': 612326}
     meta_info = None
     with meta_file.open() as f:
         meta_info = json.load(f)

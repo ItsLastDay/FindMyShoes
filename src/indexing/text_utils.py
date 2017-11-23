@@ -49,7 +49,7 @@ class TextExtractor:
         return TextExtractor.tokenizer.tokenize(sent)
 
     @staticmethod
-    def get_normal_words_from_text(text):
+    def get_normal_words_from_text(text: str) -> [str]:
         sentences = TextExtractor._split_by_sentences(text)
         words = []
         for sent in sentences:

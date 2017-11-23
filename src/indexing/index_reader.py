@@ -7,8 +7,7 @@ import struct
 import mmap
 
 import sys
-
-from logging import getLogger
+from typing import Optional
 
 from index_builder import INVERTED_ENTRY_SIZE
 from text_utils import TextExtractor
@@ -33,25 +32,34 @@ class IndexReader:
         self._inv_idx_mmap.close()
         self._inv_idx_fd.close()
 
-    def get_documents(self, word):
+    def get_word_entry(self, word, preprocess=True) -> Optional[dict]:
         # Apply same normalization as for computing index.
-        word = TextExtractor.get_normal_words_from_text(word)
-        if not word:
-            return []
-        word = word[0]
+        if preprocess:
+            word = TextExtractor.get_normal_words_from_text(word)
+            word = None if not word else word[0]
         if word not in self._dictionary['words']:
-            return []
+            return None
+        return self._dictionary['words'][word]
 
-        offset = self._dictionary['words'][word]['offset_inverted']
-        df = self._dictionary['words'][word]['df']
+    def get_documents(self, word, preprocess=True):
+        word_entry = self.get_word_entry(word, preprocess)
+        return self._get_documents_for_word_entry(word_entry)
+
+    def _get_documents_for_word_entry(self, word_entry):
+        if word_entry is None:
+            return []
+        offset = word_entry['offset_inverted']
+        df = word_entry['df']
 
         documents = []
         for i in range(df):
             cur_offset = offset + i * INVERTED_ENTRY_SIZE
             doc_idx = struct.unpack('i', self._inv_idx_mmap[cur_offset:cur_offset + INVERTED_ENTRY_SIZE])[0]
             documents.append(self._dictionary['documents'][doc_idx])
-
         return documents
+
+    def _document_path_from_id(self, document_id: str):
+        return
 
 
 def main():
