@@ -8,6 +8,8 @@ import mmap
 
 import sys
 from typing import Optional
+from logging import getLogger
+logger = getLogger("index_reader")
 
 from index_builder import INVERTED_ENTRY_SIZE
 from text_utils import TextExtractor
@@ -19,7 +21,7 @@ class IndexReader:
         self.inverted_index_path = inverted_index_path
 
     def __enter__(self):
-        print(self.inverted_index_path)
+        logger.debug("Reading inverted index from path: " + self.inverted_index_path)
         self._inv_idx_fd = open(self.inverted_index_path, 'r+b')
         self._inv_idx_mmap = mmap.mmap(self._inv_idx_fd.fileno(), 0)
 
