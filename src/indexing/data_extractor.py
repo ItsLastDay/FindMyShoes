@@ -13,7 +13,7 @@ import copy
 
 import urllib.parse
 
-from domain_specific_extractor import get_extractor_for_domain
+from extract import get_extractor_for_domain
 
 count_by_domain = collections.Counter()
 
@@ -61,7 +61,7 @@ def extract_and_write_json(meta_file, json_dir, limit_by_domain=inf):
 def main():
     from common import default_raw_dir, default_json_dir
     parser = argparse.ArgumentParser(description="data_extractor")
-    parser.add_argument("--domain_limit", type=int, default=inf)
+    parser.add_argument("--domain-limit", type=int, default=inf)
     parser.add_argument("--json-dir", type=str, default=default_json_dir())
     parser.add_argument("--raw-dir", type=str, default=default_raw_dir())
     args = parser.parse_args()
