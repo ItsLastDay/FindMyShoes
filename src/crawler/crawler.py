@@ -4,6 +4,7 @@ import time
 from logging import getLogger
 import logging.config
 from queue import PriorityQueue
+from collections import defaultdict
 
 from page import Page
 from queues import DomainQueue, CrawlQueue
@@ -30,6 +31,8 @@ def main():
     time_domains_to_crawl = PriorityQueue()
 
     robots_info = RobotsProvider()
+
+    url_fails = defaultdict(lambda: 0)
 
     while domains_to_crawl.has_next():
         # Fetch one more domain from the queue
@@ -64,12 +67,8 @@ def main():
                         page_queue.add_pages(cur_page.children())
 
                         # Page is fetched: next access should be delayed.
-                        required_delay = \
-                            robots_info.get_robots_delay(new_domain)
-                        time_domains_to_crawl.put_nowait(
-                            (fetch_time + required_delay,
-                             page_queue)
-                        )
+                        required_delay = robots_info.get_robots_delay(new_domain)
+                        time_domains_to_crawl.put_nowait((fetch_time + required_delay, page_queue))
                     except Exception as e:
                         main_crawler_logger.error(e)
                         # Seen errors: 
@@ -78,16 +77,14 @@ def main():
                         URLGetter.restart_sesison()
                         print('sleeping')
                         time.sleep(10)
-                        if not hasattr(cur_page, "_fail_count"):
-                            cur_page._fail_count = 0
-                        if cur_page._fail_count < 3:
-                            cur_page._fail_count += 1
+                        url_fails[cur_page.url()] += 1
+                        if url_fails[cur_page.url()] < 3:
                             page_queue.add_page(cur_page)
-                            time_domains_to_crawl.put_nowait((fetch_time, page_queue))
+
+                        time_domains_to_crawl.put_nowait((fetch_time, page_queue))
                 else:
                     # Page should not be fetched: we can ignore delay.
-                    time_domains_to_crawl.put_nowait((fetch_time,
-                                                      page_queue))
+                    time_domains_to_crawl.put_nowait((fetch_time, page_queue))
 
             time_domains_to_crawl.task_done()
 
