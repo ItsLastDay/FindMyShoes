@@ -44,8 +44,56 @@ class PageFilter(ABC):
         # 'https://www.ecco-shoes.ru/catalog/634504/01053/'
         ecco_shoes_filter = PageFilter._get_domain_filters('https://www.ecco-shoes.ru')
         ecco_shoes_filter.append(RegexpPageFilter(r'/catalog/\d+/\d+/?'))
-        ecco_shoes_filter.append(
-            BreadcrumbPageFilter('div.i-breadcrumb > ul.i-breadcrumb-way > li > a > span', 'обувь'))
+        ecco_shoes_filter.append(BreadcrumbPageFilter('div.i-breadcrumb > ul.i-breadcrumb-way > li > a > span', 'обувь'))
+
+        # https://www.quelle.ru/women-fashion/women-shoes/women-boots/woman-boots-winter/dutiki-m381300-t7i38918-2.html
+        quelle_filter = PageFilter._get_domain_filters("https://www.quelle.ru")
+        quelle_filter.append(RegexpPageFilter(r'/.*shoes.*\.html$'))
+        quelle_filter.append(BreadcrumbPageFilter('ul.q-breadcrumb-box__breadcrumb > li', 'обувь'))
+
+        # https://www.wildberries.ru/catalog/4707453/detail.aspx?targetUrl=GP
+        wildberries_filter = PageFilter._get_domain_filters("https://www.wildberries.ru")
+        wildberries_filter.append(RegexpPageFilter(r'/catalog/\d+/detail.aspx.*'))
+        wildberries_filter.append(BreadcrumbPageFilter('div.card-add-info-text-block div#add-options p.pp', 'Материал подкладки обуви'))
+
+        # https://kctati.ru/catalog/zhenskaya/botilony_zhenskie_cupage_1/
+        kctati_filter = PageFilter._get_domain_filters("https://kctati.ru")
+        kctati_filter.append(RegexpPageFilter(r'/catalog/.*/.*/$'))
+        kctati_filter.append(BreadcrumbPageFilter('ul.[class^="breadcrumb-navigation"] > li:nth-of-type(5) > a > span', 'обувь'))
+
+        # http://www.kinderly.ru/product/el-tempo-botinki-1510842925
+        kinderly_filter = PageFilter._get_domain_filters("http://www.kinderly.ru")
+        kinderly_filter.append(RegexpPageFilter(r'/product/.*'))
+        kinderly_filter.append(BreadcrumbPageFilter('div.breadcrumb > ul.breadcrumb__list > li:nth-of-type(2) > a > span', 'Обувь'))
+
+        # https://my-shop.ru/shop/products/2915764.html
+        myshop_filter = PageFilter._get_domain_filters("https://my-shop.ru")
+        myshop_filter.append(RegexpPageFilter(r'/shop/products/\d+.html'))
+        myshop_filter.append(BreadcrumbPageFilter('div[data-o="breadcrumbs"] > div > a:nth-of-type(2)', 'Обувь'))
+
+        # http://www.ozon.ru/context/detail/id/143316055/?item=143316030
+        ozon_filter = PageFilter._get_domain_filters("http://www.ozon.ru")
+        ozon_filter.append(RegexpPageFilter(r'/context/detail/id/\d+/'))
+        ozon_filter.append(BreadcrumbPageFilter('div[class^="bBreadCrumbs"] > div:nth-of-type(2) > a > span', 'Обувь'))
+
+        # https://www.onlinetrade.ru/catalogue/muzhskie_botinki-c1631/crosby/botinki_crosby_478339_01_02_muzhskie_tsvet_temno_siniy_rus_razmer_41_478339_01_02_41-1152236.html
+        online_trade_filter = PageFilter._get_domain_filters("https://www.onlinetrade.ru")
+        online_trade_filter.append(RegexpPageFilter(r'/catalogue/.*\.html$'))
+        online_trade_filter.append(BreadcrumbPageFilter('ul.breadcrumbs__list > li:nth-of-type(3) > a > span:nth-of-type(3)', 'Обувь'))
+
+        # https://shop24.ru/product/botinki-jomos-klingel-cvet-bezhevyj-887638.html
+        shop24_filter = PageFilter._get_domain_filters("https://shop24.ru")
+        shop24_filter.append(RegexpPageFilter(r'/product/.*\d+\.html$'))
+        shop24_filter.append(BreadcrumbPageFilter('ul.breadcrumbs__widget > li:nth-of-type(3) > a', 'обувь'))
+
+        # TODO filter pages with suffix '/reviews/#start.html' or like
+        # http://www.top-shop.ru/product/1043145-walkmaxx-fit/
+        # http://www.top-shop.ru/product/516637-almi-rim/
+        topshop_filter = PageFilter._get_domain_filters("http://www.top-shop.ru")
+        topshop_filter.append(RegexpPageFilter(r'/product/\d+.*'))
+        topshop_filter.append(BreadcrumbPageFilter('div.breadcrumb_cont > ol > li > a', 'обувь'))
+
+        # TODO check new ones with re.compile('...').match(...)
 
     @abstractmethod
     def should_be_stored(self, page: Page) -> bool:

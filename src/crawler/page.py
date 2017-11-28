@@ -16,6 +16,9 @@ class PageException(BaseException):
     pass
 
 
+QUELLE_LINK_PREFIX = '//www.quelle.ru'
+
+
 class Page:
     def __init__(self, domain_url: str, path: str = '/'):
         """Page is created by text URL.
@@ -34,14 +37,22 @@ class Page:
         if domain_path.startswith('/'):
             domain_path = domain_path[1:]
         if len(domain_path) > 0:
-            path = "/{}{}".format(domain_path, path)
+            if path != "/" or len(domain_path) == 0:
+                path = "/{}{}".format(domain_path, path)
             if query != '':
                 # 200: https://www.lamoda.ru/c/15/shoes-women/?sitelink=topmenuW&l=3&page=1 
                 # 400: https://www.lamoda.ru/c/15/shoes-women/?sitelink=topmenuW&l=3&page=1/
                 path = path.rstrip('/')
 
+        # quelle bad links like '//www.quelle.ru/home/all-action-codes/'
+
+        if path.startswith(QUELLE_LINK_PREFIX):
+            path = path[len(QUELLE_LINK_PREFIX):]
+
         self._domain_url = "{}://{}".format(scheme, netloc)
         assert path.startswith('/') and (len(path) == 1 or path[1] != '/')
+        while len(path) > 1 and path[-2:] == '//':
+            path = path[:-1]
         self._path = path
         self._mtime = None
         self._text = None
@@ -129,10 +140,14 @@ class Page:
                 path = '/' + path
             return path
 
-        valid_paths = list(filter(lambda path: path is not None and path.startswith('/'),
-                               map(get_path_from_link, self._soup.find_all('a'))
-                               )
-                      )  
+
+        def path_filter(path):
+            return path is not None and \
+                path.startswith('/') and \
+                   (path[:2] != "//" or
+                    path[:len(QUELLE_LINK_PREFIX)] == QUELLE_LINK_PREFIX)
+
+        valid_paths = list(filter(path_filter, map(get_path_from_link, self._soup.find_all('a'))))
 
         # Dirty hack for lamoda: start from pages of the form
         # https://www.lamoda.ru/c/15/shoes-women/?sitelink=topmenuW&l=3&page=XXX
@@ -143,6 +158,32 @@ class Page:
             # They are not 100% identical, but in essense, they are.
             valid_paths = list(filter(lambda path: path.startswith('/p/')
                 and '?sku=' not in path, valid_paths))
+
+        def path_does_not_contains(path: str, substrings: [str]):
+            return all(map(lambda ss: path.find(ss) == -1, substrings))
+
+        def filter_children_paths(valid_paths, substrings: [str]):
+            return list(filter(lambda path: path_does_not_contains(path, substrings), valid_paths))
+
+        if 'my-shop' in self._domain_url:
+            valid_paths = filter_children_paths(valid_paths, ['forum', 'help', 'books', 'toys'])
+
+        if 'quelle' in self._domain_url:
+            valid_paths = filter_children_paths(valid_paths, ['furniture', 'wear', 'cloth', 'dress',
+                                                              'carpets', 'towels', 'shirts', 'jackets',
+                                                              'trousers', 'pullovers', 'coats', 'curtains',
+                                                              'blouses', 'coats'])
+
+        if 'kinderly' in self._domain_url:
+            valid_paths = filter_children_paths(valid_paths, ['vodolazki', 'svitera', 'kofty', 'rantsy', 'kostyumy',
+                                                              'kurtki',  'palto', 'odezhda', 'tolstovki', 'kardigany',
+                                                              'shtany', 'kalsony', 'plavki', 'shorty', 'bridzhi',
+                                                              'dzhinsy', 'kolgotki', 'kombinezony', 'polzunki',
+                                                              'shtanishki', 'futbolochki', 'chepchiki', 'pelenki',
+                                                              'termobelie', 'trikotazh', 'kraski', 'karandashy',
+                                                              'kantstovary', 'fartuki', 'sportivnaia-forma', 'bryuki',
+                                                              'trusy', 'shortiki'])
+
 
         return list(map(lambda path: Page(self._domain_url, path), valid_paths))
 
