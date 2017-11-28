@@ -74,6 +74,16 @@ def ecco_shoes_test():
         ]
     general_test(domain_url, tests)
 
+def topshop_test():
+    domain_url = 'http://www.top-shop.ru'
+    tests = [
+        ('/', (False, False)),
+        ('/product/516637-almi-rim/', (True, True)),
+        ('/product/434878-walkmaxx-running-shoes-2-0/', (True, True)),
+        ('/genre/1652-krossovki/', (False, True)),
+        ('/product/995922-grace-zhanna-cvet-zelenyy/', (True, False))
+    ]
+    general_test(domain_url, tests)
 
 if __name__ == '__main__':
     bonprix_test()
@@ -81,3 +91,4 @@ if __name__ == '__main__':
     antoniobiaggi_test()
     lamoda_test()
     ecco_shoes_test()
+    topshop_test()

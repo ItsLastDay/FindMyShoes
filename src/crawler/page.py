@@ -40,7 +40,7 @@ class Page:
         # just in case.
         if netloc.endswith('/'):
             netloc = netloc[:-1]
-        if len(domain_path) > 0:
+        if len(domain_path) > 0 and domain_path != "/":
             assert path == '/'
             path = domain_path
         if query != '':

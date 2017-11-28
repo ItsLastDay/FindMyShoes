@@ -91,7 +91,11 @@ class PageFilter(ABC):
         # http://www.top-shop.ru/product/516637-almi-rim/
         topshop_filter = PageFilter._get_domain_filters("http://www.top-shop.ru")
         topshop_filter.append(RegexpPageFilter(r'/product/\d+.*'))
-        topshop_filter.append(BreadcrumbPageFilter('div.breadcrumb_cont > ol > li > a', 'обувь'))
+        topshop_filter.append(BreadcrumbPageFilter(
+            ['div.breadcrumb_cont > ol > li:nth-of-type(2) > a',
+             'div.breadcrumb_cont > ol > li:nth-of-type(3) > a'],
+            [['Обувь Walkmaxx'], ['Обувь']]
+        ))
 
         # TODO check new ones with re.compile('...').match(...)
 
@@ -139,24 +143,44 @@ class RegexpPageFilter(PageFilter):
 
 # case-insensitive.
 class BreadcrumbPageFilter(PageFilter):
-    def __init__(self, css_spans_selector, templates):
-        self.spans_selector = css_spans_selector
-
+    def __init__(self, css_spans_selectors, templates):
+        """
+        Constructor.
+        :param css_spans_selectors.
+        :param templates:
+        """
         def filter_from_template(template):
             return lambda span: span.text.lower().find(template.lower()) != -1
 
-        if type(templates) == list:
-            self.span_filters = list(map(filter_from_template, templates))
-        else:
+        if type(templates) != list:
             assert type(templates) == str
-            self.span_filters = [filter_from_template(templates)]
+            templates = [templates]
+
+        self.selectors_templates = dict()
+        if type(css_spans_selectors) == list:
+            assert type(templates) == list and type(templates[0]) == list and len(css_spans_selectors) == len(templates)
+            self.selectors = css_spans_selectors
+            for i, selector in enumerate(self.selectors):
+                self.selectors_templates[selector] = templates[i]
+        else:
+            self.selectors = [css_spans_selectors]
+            self.selectors_templates[css_spans_selectors] = templates
 
     def should_be_stored(self, page: Page) -> bool:
         if page._soup is None: return False
-        spans = page._soup.select(self.spans_selector)
+
+        def filter_with_template(span, template):
+            return span.text.lower().find(template.lower()) != -1
+
         result = False
-        for f in self.span_filters:
-            result = result or any(map(f, spans))
+        for selector in self.selectors:
+            spans = page._soup.select(selector)
+            templates = self.selectors_templates[selector]
+            current_selector_result = False
+            for span in spans:
+                for template in templates:
+                    current_selector_result = current_selector_result or filter_with_template(span, template)
+            result = result or current_selector_result
         return result
 
 
