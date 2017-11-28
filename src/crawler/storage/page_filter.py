@@ -59,7 +59,7 @@ class PageFilter(ABC):
         # https://kctati.ru/catalog/zhenskaya/botilony_zhenskie_cupage_1/
         kctati_filter = PageFilter._get_domain_filters("https://kctati.ru")
         kctati_filter.append(RegexpPageFilter(r'/catalog/.*/.*/$'))
-        kctati_filter.append(BreadcrumbPageFilter('ul.[class^="breadcrumb-navigation"] > li:nth-of-type(5) > a > span', 'обувь'))
+        kctati_filter.append(BreadcrumbPageFilter('ul[class^="breadcrumb-navigation"] > li:nth-of-type(5) > a > span', 'обувь'))
 
         # http://www.kinderly.ru/product/el-tempo-botinki-1510842925
         kinderly_filter = PageFilter._get_domain_filters("http://www.kinderly.ru")
@@ -77,9 +77,9 @@ class PageFilter(ABC):
         ozon_filter.append(BreadcrumbPageFilter('div[class^="bBreadCrumbs"] > div:nth-of-type(2) > a > span', 'Обувь'))
 
         # https://www.onlinetrade.ru/catalogue/muzhskie_botinki-c1631/crosby/botinki_crosby_478339_01_02_muzhskie_tsvet_temno_siniy_rus_razmer_41_478339_01_02_41-1152236.html
-        online_trade_filter = PageFilter._get_domain_filters("https://www.onlinetrade.ru")
-        online_trade_filter.append(RegexpPageFilter(r'/catalogue/.*\.html$'))
-        online_trade_filter.append(BreadcrumbPageFilter('ul.breadcrumbs__list > li:nth-of-type(3) > a > span:nth-of-type(3)', 'Обувь'))
+        onlinetrade_filter = PageFilter._get_domain_filters("https://www.onlinetrade.ru")
+        onlinetrade_filter.append(RegexpPageFilter(r'/catalogue/.*\.html$'))
+        onlinetrade_filter.append(BreadcrumbPageFilter('ul.breadcrumbs__list > li:nth-of-type(3) > a > span:nth-of-type(3)', 'Обувь'))
 
         # https://shop24.ru/product/botinki-jomos-klingel-cvet-bezhevyj-887638.html
         shop24_filter = PageFilter._get_domain_filters("https://shop24.ru")
@@ -137,13 +137,13 @@ class RegexpPageFilter(PageFilter):
     def should_be_stored(self, page: Page) -> bool:
         return self._re.match(page.path()) is not None
 
-
+# case-insensitive.
 class BreadcrumbPageFilter(PageFilter):
     def __init__(self, css_spans_selector, templates):
         self.spans_selector = css_spans_selector
 
         def filter_from_template(template):
-            return lambda span: span.text.lower().find(template) != -1
+            return lambda span: span.text.lower().find(template.lower()) != -1
 
         if type(templates) == list:
             self.span_filters = list(map(filter_from_template, templates))
