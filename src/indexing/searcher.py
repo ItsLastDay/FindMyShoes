@@ -11,6 +11,7 @@ import json
 from text_utils import TextExtractor
 
 from pymongo import MongoClient
+import os.path
 
 logger = getLogger('searcher')
 
@@ -66,7 +67,7 @@ class QueryProcessor:
         """
         assert len(terms) == len(set(terms))
         logger.debug('BM25-scoring document {}'.format(doc))
-        doc_path = Path(join(self._json_dir, doc))
+        doc_path = Path(os.path.join(self._json_dir, doc))
         doc_words = IndexBuilder._get_words_from_path(doc_path)
         score = 0
         for term in terms:
@@ -137,16 +138,22 @@ class QueryProcessor:
 
         return list(filter(lambda x: x[0] in good_urls, ranked_docs))
 
+    def get_ranked_docs(self, query_string, limit=10):
+        terms = self.preprocess(query_string)
+        documents_ranks = self.ranked_documents(terms)
+        filtered_docs = self.filtered_documents(terms, documents_ranks)
+        best_documents_ranks = sorted(filtered_docs, key=lambda dr: dr[1], reverse=True)[:limit]
+        return best_documents_ranks
+
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
 
-    from os.path import join
     from common import default_index_dir, default_json_dir
     parser = argparse.ArgumentParser(description='Демонстрация работы индекса.\n'
                                                  'Вводите слова, получаете список документов, в которых слово встречается')
-    parser.add_argument("-i", "--inverted-index-path", type=str, default=join(default_index_dir(), 'inverted.bin'))
-    parser.add_argument("-d", "--dictionary", type=str, default=join(default_index_dir(), 'dictionary.txt'))
+    parser.add_argument("-i", "--inverted-index-path", type=str, default=os.path.join(default_index_dir(), 'inverted.bin'))
+    parser.add_argument("-d", "--dictionary", type=str, default=os.path.join(default_index_dir(), 'dictionary.txt'))
     parser.add_argument("--json-dir", type=str, default=default_json_dir())
     args = parser.parse_args()
 

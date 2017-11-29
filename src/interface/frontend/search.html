@@ -1,0 +1,17 @@
+<input type="text" class="form-control" ng-model="searchString" placeholder="Введите запрос..." ng-change="search()"/>
+
+<table class="table table-striped table-condensed" ng-show="have_query">
+<p ng-show="have_query">Найдено результатов: {{results[0]}}</p>
+<thead>
+    <tr>
+        <th>#</th>
+        <th>URL</th>
+        <th>Confidence</th>
+    </tr>
+</thead>
+<tr ng-repeat="result in results[1]">
+    <td>{{$index + 1}}</td>
+    <td><a href="{{result.url}}">{{result.url}}</a></td>
+    <td>{{result.confidence}}</td>
+</tr>
+</table>
