@@ -2,13 +2,8 @@
 import argparse
 import logging
 from logging import getLogger
-from collections import namedtuple, defaultdict
-from functools import partialmethod
+from collections import defaultdict
 import math
-from pathlib import Path
-
-import json
-from text_utils import TextExtractor
 
 from pymongo import MongoClient
 
@@ -16,14 +11,13 @@ logger = getLogger('searcher')
 
 from index_reader import IndexReader
 from text_utils import TextExtractor
-from index_builder import IndexBuilder
+from index_builder import DocumentEntry
 
 
 def make_colors_dict(colors):
     res = dict()
     for color in colors:
         res[TextExtractor.get_normal_words_from_text(color)[0]] = color
-
     return res
 
 
@@ -32,8 +26,8 @@ class QueryProcessor:
 
     def __init__(self, index_reader: IndexReader, json_dir: str):
         self._index_reader = index_reader
-        self._avgdl = index_reader._dictionary.get('avgdl')
-        self._ndocs = len(index_reader._dictionary.get('documents'))
+        self._dictionary = index_reader._dictionary
+        self._documents = self._dictionary.get('documents')
         self._k1 = 2.0
         self._b = 0.75
         self._json_dir = json_dir
@@ -58,29 +52,29 @@ class QueryProcessor:
         words = TextExtractor.get_normal_words_from_text(query)
         return words
 
-    def bm25_score(self, doc, terms):
+    def bm25_score(self, doc: DocumentEntry, terms: [str], weights: [float]) -> (str, float):
         """
         :param doc: document_id
         :param terms: list of stemmed terms.
+        :param weights: list of frequencies of corresponding terms in doc.
         :return: Okapi BM25-score: https://ru.wikipedia.org/wiki/Okapi_BM25
         """
+
+        assert len(terms) == len(weights)
+        ndocs = len(self._documents)
+        avgdl = self._dictionary.get('avgdl')
+
         assert len(terms) == len(set(terms))
-        logger.debug('BM25-scoring document {}'.format(doc))
-        doc_path = Path(join(self._json_dir, doc))
-        doc_words = IndexBuilder._get_words_from_path(doc_path)
+        # logger.debug('BM25-scoring document {}'.format(doc.path))
         score = 0
-        for term in terms:
+        for term, fqd in zip(terms, weights):
             # term in document frequency
-            fqd = doc_words.count(term)
             word_entry = self._index_reader.get_word_entry(term)
-
-            if word_entry is None: continue
+            if word_entry is None or fqd == 0: continue
             df = word_entry.get('df')
-            idf = math.log2((self._ndocs - df + QueryProcessor.IDF_SMOOTH) / (df + QueryProcessor.IDF_SMOOTH))
-            score += idf * fqd * (self._k1 + 1) / (fqd + self._k1 * (1 - self._b + self._b * len(doc_words) / self._avgdl))
-
-        with doc_path.open() as doc:
-            return json.load(doc)['url'], score
+            idf = math.log2((ndocs - df + QueryProcessor.IDF_SMOOTH) / (df + QueryProcessor.IDF_SMOOTH))
+            score += idf * fqd * (self._k1 + 1) / (fqd + self._k1 * (1 - self._b + self._b * doc.length / avgdl))
+        return doc.url, score
 
     def get_urls_match_size(self, desired_size):
         # `desired_size` - shoes size, integer between 24 and 50.
@@ -95,14 +89,14 @@ class QueryProcessor:
         for term in terms:
             if self._index_reader.get_word_entry(term) is None:
                 logger.warning("term {} not found in collection".format(term))
-        match_docs = defaultdict(list)
+        match_docs_weights = defaultdict(lambda: [0] * len(terms))
         logger.debug("Searching any match documents")
-        for term in terms:
-            term_docs = self._index_reader.get_documents(term, False)
-            for doc in term_docs:
-                match_docs[doc].append(term)
-        logger.debug("Any match documents found: %d" % len(match_docs))
-        document_ranks = [self.bm25_score(doc, terms) for doc in match_docs]
+        for i, term in enumerate(terms):
+            term_docs_weights = self._index_reader.get_documents_weights(term, False)
+            for doc, weight in term_docs_weights:
+                match_docs_weights[doc][i] = weight
+        logger.debug("Any match documents found: %d" % len(match_docs_weights))
+        document_ranks = [self.bm25_score(doc, terms, weights) for doc, weights in match_docs_weights.items()]
         return document_ranks
 
     def filtered_documents(self, terms, ranked_docs):
@@ -134,7 +128,6 @@ class QueryProcessor:
             if ranked_docs[i][0] in boosted_urls:
                 ranked_docs[i] = (ranked_docs[i][0], ranked_docs[i][1] * 2)
 
-
         return list(filter(lambda x: x[0] in good_urls, ranked_docs))
 
 
@@ -146,13 +139,15 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Демонстрация работы индекса.\n'
                                                  'Вводите слова, получаете список документов, в которых слово встречается')
     parser.add_argument("-i", "--inverted-index-path", type=str, default=join(default_index_dir(), 'inverted.bin'))
+    parser.add_argument("-w", "--weight-path", type=str, default=join(default_index_dir(), 'weight.bin'))
     parser.add_argument("-d", "--dictionary", type=str, default=join(default_index_dir(), 'dictionary.txt'))
     parser.add_argument("--json-dir", type=str, default=default_json_dir())
     args = parser.parse_args()
 
-    with IndexReader(inverted_index_path=args.inverted_index_path, dictionary_path=args.dictionary) as index_reader:
+    with IndexReader(args.inverted_index_path, args.weight_path, args.dictionary) as index_reader:
         query_processor = QueryProcessor(index_reader, args.json_dir)
         logger.debug('shoes with 24 size:{}'.format(query_processor.get_urls_match_size(24)))
+
         def url_from_json(json_path):
             encoded_path = json_path[:json_path.rfind('##')]
             return encoded_path.replace('__', '/', 1).replace('##', '/')
@@ -163,7 +158,6 @@ if __name__ == '__main__':
             logger.debug("Extracted terms: " + str(terms))
             documents_ranks = query_processor.ranked_documents(terms)
             logger.debug("Documents found: {}".format(len(documents_ranks)))
-            #logger.debug("Documents found: {}".format(documents_ranks))
             filtered_docs = query_processor.filtered_documents(terms, documents_ranks)
             logger.debug("Documents after filtering: {}".format(len(filtered_docs)))
             best_documents_ranks = sorted(filtered_docs, key=lambda dr: dr[1], reverse=True)[:limit]

@@ -10,34 +10,43 @@ import struct
 import sys
 import mmap
 
+from collections import namedtuple, Counter
+
 from text_utils import TextExtractor
 
 # Store entries in inverted index as integers.
 INVERTED_ENTRY_SIZE = struct.calcsize('i')
 
+# should stay hashable for searcher.
+DocumentEntry = namedtuple('DocumentEntry', ['path', 'url', 'length', 'idx'])
+
 
 class IndexBuilder:
-
     def __init__(self, documents):
         self.dictionary = None
-        self.documents = documents
-
+        self.documents_paths = documents
 
     @staticmethod
-    def _get_words_from_path(doc_path):
-        with doc_path.open() as f:
-            json_data = json.load(f)
-
+    def _get_words_from_json(json_data):
+        # add name?
         attributes = json_data.get('attributes')
         if attributes is not None:
             attributes_text = ",".join("{}:{}".format(name, value) for (name, value) in attributes.items())
         else:
             attributes_text = ""
-        product_description = '{}\n{}\n'.format(json_data.get('description', ''),
-                                              '\n'.join(json_data.get('reviews', '')),
-                                              attributes_text)
+        product_description = '\n'.join([
+            json_data.get('name', ''),
+            json_data.get('description', ''),
+            '\n'.join(json_data.get('reviews', '')),
+            attributes_text
+        ])
         return TextExtractor.get_normal_words_from_text(product_description)
 
+    @staticmethod
+    def _get_words_from_path(doc_path):
+        with doc_path.open() as f:
+            json_data = json.load(f)
+        return IndexBuilder._get_words_from_json(json_data)
 
     def make_first_pass(self, dict_save_path):
         """First pass of indexation: count word occurencies and required index size.
@@ -58,15 +67,17 @@ class IndexBuilder:
         }
         """
         result_dict = dict()
+        documents = []
 
-        result_dict['documents'] = list(map(lambda path: path.name, self.documents))
         words_dict = dict()
         result_dict['words'] = words_dict
-        avgdl = 0.0 # average document length
+        avgdl = 0.0  # average document length
 
-        for i, doc in enumerate(self.documents):
+        for i, doc in enumerate(self.documents_paths):
             print('Reading document {}'.format(i))
-            words = self._get_words_from_path(doc)
+            with doc.open() as f:
+                json_data = json.load(f)
+            words = self._get_words_from_json(json_data)
             avgdl += len(words)
 
             added_df_words = set()
@@ -79,7 +90,14 @@ class IndexBuilder:
                     words_dict[word]['df'] += 1
                     added_df_words.add(word)
 
-        avgdl /= len(self.documents)
+            url = json_data.get('url')
+            doc_entry = DocumentEntry(path=doc.name,
+                                      url=url,
+                                      length=len(words),
+                                      idx=i)
+            documents.append(doc_entry)
+        result_dict['documents'] = list(map(lambda doc: doc._asdict(), documents))
+        avgdl /= len(self.documents_paths)
         result_dict['avgdl'] = avgdl
         print('Scanned all documents')
 
@@ -95,15 +113,14 @@ class IndexBuilder:
 
         print('First pass finished')
 
-
     def _make_second_pass_inner(self, weights, inverted):
         current_write_position = dict()
         for word in self.dictionary['words']:
             current_write_position[word] = self.dictionary['words'][word]['offset_inverted']
 
-        for i, doc in enumerate(self.documents):
+        for i, doc in enumerate(self.documents_paths):
             words = self._get_words_from_path(doc)
-            tf = collections.Counter(words)
+            tf = Counter(words)
 
             # Write document id in inverted list, term frequency to weights list.
             for word in set(words):
@@ -116,12 +133,11 @@ class IndexBuilder:
 
         print('Second pass finished')
 
-
     def make_second_pass(self, inverted_index_path, weight_path):
         """Second pass of indexation: actually store data to index.
         """
-        word_freq_pairs = [(word, self.dictionary['words'][word]['global_count']) 
-                            for word in self.dictionary['words']]
+        word_freq_pairs = [(word, self.dictionary['words'][word]['global_count'])
+                           for word in self.dictionary['words']]
         word_freq_pairs = sorted(word_freq_pairs, key=lambda x: x[1], reverse=True)
         index_size = sum(map(lambda x: x[1], word_freq_pairs)) * INVERTED_ENTRY_SIZE
 
