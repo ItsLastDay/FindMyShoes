@@ -21,7 +21,9 @@ api_base_url = '/api/v1'
 
 class Search(Resource):
     def __init__(self):
-        index_reader = IndexReader(os.path.join(data_folder, 'inverted.bin'), os.path.join(data_folder, 'dictionary.txt'))
+        index_reader = IndexReader(os.path.join(data_folder, 'inverted.bin'), 
+                os.path.join(data_folder, 'weight.bin'),
+                os.path.join(data_folder, 'dictionary.txt'))
         # Dirty!
         index_reader.__enter__()
         self._query_processor = QueryProcessor(index_reader, os.path.join(data_folder, os.pardir, 'json'))
@@ -35,7 +37,13 @@ class Search(Resource):
 
         print(query_string)
         results = self._query_processor.get_ranked_docs(query_string['q'])
-        results = list(map(lambda x: {'url': x[0], 'confidence': x[1]}, results))
+        results = list(map(lambda x: {
+            'url': x[0].url,
+            'name': x[0].name,
+            'price': x[0].price,
+            'sizes': x[0].sizes,
+            'confidence': x[1]
+            }, results))
         print(results)
 
         return [len(results), results]

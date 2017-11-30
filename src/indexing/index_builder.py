@@ -18,7 +18,7 @@ from text_utils import TextExtractor
 INVERTED_ENTRY_SIZE = struct.calcsize('i')
 
 # should stay hashable for searcher.
-DocumentEntry = namedtuple('DocumentEntry', ['path', 'url', 'length', 'idx'])
+DocumentEntry = namedtuple('DocumentEntry', ['path', 'url', 'length', 'idx', 'sizes', 'price', 'name'])
 
 
 class IndexBuilder:
@@ -91,9 +91,17 @@ class IndexBuilder:
                     added_df_words.add(word)
 
             url = json_data.get('url')
+            shoe_name = json_data.get('name')
+            shoe_price = json_data.get('price')
+            shoe_sizes = json_data.get('sizes')
+            if isinstance(shoe_sizes, list):
+                shoe_sizes = tuple(shoe_sizes)
             doc_entry = DocumentEntry(path=doc.name,
                                       url=url,
                                       length=len(words),
+                                      price=shoe_price,
+                                      sizes=shoe_sizes,
+                                      name=shoe_name,
                                       idx=i)
             documents.append(doc_entry)
         result_dict['documents'] = list(map(lambda doc: doc._asdict(), documents))

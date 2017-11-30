@@ -70,12 +70,12 @@ class QueryProcessor:
         score = 0
         for term, fqd in zip(terms, weights):
             # term in document frequency
-            word_entry = self._index_reader.get_word_entry(term)
+            word_entry = self._index_reader.get_word_entry(term, False)
             if word_entry is None or fqd == 0: continue
             df = word_entry.get('df')
             idf = math.log2((ndocs - df + QueryProcessor.IDF_SMOOTH) / (df + QueryProcessor.IDF_SMOOTH))
             score += idf * fqd * (self._k1 + 1) / (fqd + self._k1 * (1 - self._b + self._b * doc.length / avgdl))
-        return doc.url, score
+        return doc, score
 
     def get_urls_match_size(self, desired_size):
         # `desired_size` - shoes size, integer between 24 and 50.
@@ -90,18 +90,19 @@ class QueryProcessor:
         for term in terms:
             if self._index_reader.get_word_entry(term) is None:
                 logger.warning("term {} not found in collection".format(term))
-        match_docs_weights = defaultdict(lambda: [0] * len(terms))
+        match_docs_weights = defaultdict(lambda: [None, [0] * len(terms)])
         logger.debug("Searching any match documents")
         for i, term in enumerate(terms):
             term_docs_weights = self._index_reader.get_documents_weights(term, False)
             for doc, weight in term_docs_weights:
-                match_docs_weights[doc][i] = weight
+                match_docs_weights[doc.url][1][i] = weight
+                match_docs_weights[doc.url][0] = doc
         logger.debug("Any match documents found: %d" % len(match_docs_weights))
-        document_ranks = [self.bm25_score(doc, terms, weights) for doc, weights in match_docs_weights.items()]
+        document_ranks = [self.bm25_score(doc, terms, weights) for doc, weights in match_docs_weights.values()]
         return document_ranks
 
     def filtered_documents(self, terms, ranked_docs):
-        good_urls = set(map(lambda x: x[0], ranked_docs))
+        good_urls = set(map(lambda x: x[0].url, ranked_docs))
 
         # Filter by size. If integer between 24 and 50 is found
         # in query, it is considered the desired shoe size (what else it could be?)
@@ -110,6 +111,7 @@ class QueryProcessor:
                 size = int(term)
                 if 24 <= size <= 50:
                     good_urls &= set(self.get_urls_match_size(size))
+                    print(good_urls)
             except ValueError:
                 pass
 
@@ -126,10 +128,10 @@ class QueryProcessor:
                 boosted_urls |= set(self.get_urls_match_color(self._colors[term]))
 
         for i in range(len(ranked_docs)):
-            if ranked_docs[i][0] in boosted_urls:
-                ranked_docs[i] = (ranked_docs[i][0], ranked_docs[i][1] * 2)
+            if ranked_docs[i][0].url in boosted_urls:
+                ranked_docs[i] = (ranked_docs[i][0].url, ranked_docs[i][1] * 2)
 
-        return list(filter(lambda x: x[0] in good_urls, ranked_docs))
+        return list(filter(lambda x: x[0].url in good_urls, ranked_docs))
 
     def get_ranked_docs(self, query_string, limit=10):
         terms = self.preprocess(query_string)

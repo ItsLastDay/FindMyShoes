@@ -5,12 +5,18 @@
 <thead>
     <tr>
         <th>#</th>
+        <th>Название</th>
+        <th>Цена</th>
+        <th>Размеры</th>
         <th>URL</th>
         <th>Confidence</th>
     </tr>
 </thead>
 <tr ng-repeat="result in results[1]">
     <td>{{$index + 1}}</td>
+    <td>{{result.name}}</td>
+    <td>{{result.price}}</td>
+    <td>{{result.sizes}}</td>
     <td><a href="{{result.url}}">{{result.url}}</a></td>
     <td>{{result.confidence}}</td>
 </tr>
