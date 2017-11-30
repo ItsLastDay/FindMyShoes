@@ -36,7 +36,7 @@ class Search(Resource):
         query_string = parser.parse_args()
 
         print(query_string)
-        results = self._query_processor.get_ranked_docs(query_string['q'], page=int(query_string['page']))
+        total_num, results = self._query_processor.get_ranked_docs(query_string['q'], page=int(query_string['page']))
         results = list(map(lambda x: {
             'url': x[0].url,
             'name': x[0].name,
@@ -47,7 +47,7 @@ class Search(Resource):
             }, results))
         print(results)
 
-        return [len(results), results]
+        return [total_num, results]
         
 
 api.add_resource(Search, api_base_url + '/search')

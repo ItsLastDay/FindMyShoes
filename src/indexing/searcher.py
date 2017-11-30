@@ -141,7 +141,7 @@ class QueryProcessor:
         stop = page * limit
         best_documents_ranks = sorted(filtered_docs, 
                 key=lambda dr: dr[1], reverse=True)[start:stop]
-        return best_documents_ranks
+        return len(filtered_docs), best_documents_ranks
 
 
 if __name__ == '__main__':
