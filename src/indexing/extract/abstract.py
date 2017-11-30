@@ -181,6 +181,8 @@ class AbstractDataExtractor:
         self._save(JSONKey.PRICE_KEY, self._PRICE_SELECTOR, price_from_string)
 
     def _parse_image(self):
+        if not self._IMG_SELECTOR:
+            return
         data = self._selectable_data.cssselect(self._IMG_SELECTOR)
         if not data:
             return
