@@ -133,11 +133,14 @@ class QueryProcessor:
 
         return list(filter(lambda x: x[0].url in good_urls, ranked_docs))
 
-    def get_ranked_docs(self, query_string, limit=10):
+    def get_ranked_docs(self, query_string, page=1, limit=10):
         terms = self.preprocess(query_string)
         documents_ranks = self.ranked_documents(terms)
         filtered_docs = self.filtered_documents(terms, documents_ranks)
-        best_documents_ranks = sorted(filtered_docs, key=lambda dr: dr[1], reverse=True)[:limit]
+        start = (page - 1) * limit
+        stop = page * limit
+        best_documents_ranks = sorted(filtered_docs, 
+                key=lambda dr: dr[1], reverse=True)[start:stop]
         return best_documents_ranks
 
 

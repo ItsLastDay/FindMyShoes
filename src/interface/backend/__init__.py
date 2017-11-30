@@ -32,11 +32,11 @@ class Search(Resource):
     def get(self):
         parser = reqparse.RequestParser()
         parser.add_argument('q')
-        parser.add_argument('imp')
+        parser.add_argument('page')
         query_string = parser.parse_args()
 
         print(query_string)
-        results = self._query_processor.get_ranked_docs(query_string['q'])
+        results = self._query_processor.get_ranked_docs(query_string['q'], page=int(query_string['page']))
         results = list(map(lambda x: {
             'url': x[0].url,
             'name': x[0].name,
