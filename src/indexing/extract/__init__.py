@@ -7,3 +7,4 @@ from extract.asos import AsosExtractor
 from extract.bonprix import BonprixExtractor
 from extract.lamoda import LamodaExtractor
 from extract.respect import RespectExtractor
+from extract.ecco import EccoExtractor

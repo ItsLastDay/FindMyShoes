@@ -12,6 +12,7 @@ class EccoExtractor(AbstractDataExtractor):
     _COLORS_SELECTOR = 'div.color > span'
     _SIZES_SELECTOR = 'div.size-range > span'
     _PRICE_SELECTOR = 'div.price-now > span'
+    _IMG_SELECTOR = 'img.preview-image'
 
     _REVIEWS_SELECTOR = 'div.product-review-opinion div.description'
     _DESCRIPTION_SELECTOR = 'div.product-info > div.product-description > p.product-description-text'

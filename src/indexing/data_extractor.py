@@ -28,7 +28,9 @@ def populate_data(data_dict, html_path, domain):
     # It is crucial to read HTML *only if* we really need to. 
     # Otherwise, data extractor is slooow.
     raw_html = html_path.open().read()
-    get_extractor_for_domain(domain).parse_html(raw_html, data_dict)
+    extractor = get_extractor_for_domain(domain)
+    if extractor:
+        extractor.parse_html(raw_html, data_dict)
 
 
 def extract_and_write_json(meta_file, json_dir, limit_by_domain=inf):

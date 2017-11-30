@@ -18,7 +18,7 @@ from text_utils import TextExtractor
 INVERTED_ENTRY_SIZE = struct.calcsize('i')
 
 # should stay hashable for searcher.
-DocumentEntry = namedtuple('DocumentEntry', ['path', 'url', 'length', 'idx', 'sizes', 'price', 'name'])
+DocumentEntry = namedtuple('DocumentEntry', ['path', 'url', 'length', 'idx', 'sizes', 'price', 'name', 'image'])
 
 
 class IndexBuilder:
@@ -94,6 +94,7 @@ class IndexBuilder:
             shoe_name = json_data.get('name')
             shoe_price = json_data.get('price')
             shoe_sizes = json_data.get('sizes')
+            shoe_image = json_data.get('image')
             if isinstance(shoe_sizes, list):
                 shoe_sizes = tuple(shoe_sizes)
             doc_entry = DocumentEntry(path=doc.name,
@@ -102,6 +103,7 @@ class IndexBuilder:
                                       price=shoe_price,
                                       sizes=shoe_sizes,
                                       name=shoe_name,
+                                      image=shoe_image,
                                       idx=i)
             documents.append(doc_entry)
         result_dict['documents'] = list(map(lambda doc: doc._asdict(), documents))

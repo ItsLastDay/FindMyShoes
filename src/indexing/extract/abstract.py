@@ -11,6 +11,7 @@ class JSONKey:
     SHOP_KEY = 'shop'
     PRICE_KEY = 'price'
     SIZES_KEY = 'sizes'
+    IMG_KEY = 'image'
 
     GENDER_KEY = 'gender'
     GENDER_MEN = "M"
@@ -27,7 +28,11 @@ domain_extractors = dict()
 
 def get_extractor_for_domain(domain):
     # Create new object every time, so we can save some state.
-    return domain_extractors[domain]()
+    try:
+        return domain_extractors[domain]()
+    except KeyError:
+        # Can happen if there is no extractor.
+        return None
 
 
 def extractor_for(domain):
@@ -37,7 +42,7 @@ def extractor_for(domain):
     return f
 
 
-# FIXME It's a dirty hack, more neater site-specific fix required.
+# FIXME It's a dirty hack, neater site-specific fix required.
 def _get_single_value(selector_result: [str]) -> Optional[str]:
     if not selector_result:
         return None
@@ -70,6 +75,7 @@ class AbstractDataExtractor:
     _PRICE_SELECTOR = None
     _SIZES_SELECTOR = None
     _GENDER_SELECTOR = None
+    _IMG_SELECTOR = None
 
     _DESCRIPTION_SELECTOR = None
     _REVIEWS_SELECTOR = None
@@ -108,6 +114,7 @@ class AbstractDataExtractor:
         self._parse_price()
         self._parse_sizes()
         self._parse_gender()
+        self._parse_image()
         self._save_raw(JSONKey.SHOP_KEY, self._shop)
 
         # Unstructured info
@@ -173,11 +180,26 @@ class AbstractDataExtractor:
             return None
         self._save(JSONKey.PRICE_KEY, self._PRICE_SELECTOR, price_from_string)
 
+    def _parse_image(self):
+        data = self._selectable_data.cssselect(self._IMG_SELECTOR)
+        if not data:
+            return
+        x = data[0].get('src')
+        if x.startswith('/'):
+            x = self._shop + x
+        if not x.startswith('http'):
+            x = 'http://' + x
+        self._result_dict_ref[JSONKey.IMG_KEY] = x
+
     def _parse_sizes(self):
         # TODO allow half sizes and check how they are specified at different shops.
         def process_sizes(sizes: [str]):
             if sizes:
-                return list(map(float, sizes))
+                # There can be sizes like "35-43"
+                if '-' in sizes[0]:
+                    start, stop = sizes[0].split('-')
+                    sizes = list(range(int(start), int(stop) + 1))
+                return list(map(str, sizes))
             return None
         self._save(JSONKey.SIZES_KEY, self._SIZES_SELECTOR, process_sizes)
 

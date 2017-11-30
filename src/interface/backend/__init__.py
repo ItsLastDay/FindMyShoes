@@ -42,6 +42,7 @@ class Search(Resource):
             'name': x[0].name,
             'price': x[0].price,
             'sizes': x[0].sizes,
+            'image': x[0].image,
             'confidence': x[1]
             }, results))
         print(results)
