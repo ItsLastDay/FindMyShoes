@@ -13,24 +13,22 @@
 
 <table class="table table-striped table-condensed" ng-show="have_query">
 <p ng-show="have_query">Найдено результатов: {{results[0]}}</p>
+<div class="container-fluid">
 <thead>
-    <tr>
-        <th>#</th>
-        <th>Название</th>
-        <th>Картинка</th>
-        <th>Цена</th>
-        <th>Размеры</th>
-        <th>URL</th>
-        <th>Confidence</th>
+    <tr class="row">
+        <th class="col-md-1">#</th>
+        <th class="col-md-4">Название</th>
+        <th class="col-md-2">Картинка</th>
+        <th class="col-md-1">Цена</th>
+        <!--        <th>Confidence</th> -->
     </tr>
 </thead>
-<tr ng-repeat="result in results[1]">
-    <td>{{$index + 1}}</td>
-    <td>{{result.name}}</td>
-    <td><img src="{{result.image}}"/></td>
-    <td>{{result.price}}</td>
-    <td>{{result.sizes}}</td>
-    <td><a href="{{result.url}}">{{result.url}}</a></td>
-    <td>{{result.confidence}}</td>
+<tr class="row" ng-repeat="result in results[1]">
+    <td class="col-md-1">{{$index + 1}}</td>
+    <td class="col-md-4"><a href="{{result.url}}">{{result.name}}</a></td>
+    <td class="col-md-2"><img style="max-height: 100%; max-width: 100%" src="{{result.image}}" title="Доступные размеры: {{result.sizes}}"/></td>
+    <td class="col-md-1">{{result.price}}</td>
+    <!--    <td>{{result.confidence}}</td> -->
 </tr>
+</div>
 </table>
