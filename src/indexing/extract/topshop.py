@@ -63,7 +63,8 @@ class TopshopExtractor(AbstractDataExtractor):
         panel = panels[0]
         text = ""
         for ch in panel.getchildren():
-            text += ch.text
+            if ch.text is not None:
+                text += ch.text
             for ch1 in ch.getchildren():
                 if ch1.text is not None:
                     text += ch1.text

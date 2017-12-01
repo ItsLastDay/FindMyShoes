@@ -26,7 +26,7 @@ class AntonioExtractor(AbstractDataExtractor):
 
     def _parse_sizes(self):
         def filter_sizes(sizes: [str]):
-            return list(filter(lambda s: s.isdigit(), sizes))
+            return list(map(float, filter(lambda s: s.isdigit(), sizes)))
         self._save(JSONKey.SIZES_KEY, self._SIZES_SELECTOR, filter_sizes)
 
     def _parse_attributes(self):

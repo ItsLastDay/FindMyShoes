@@ -81,9 +81,11 @@ class QueryProcessor:
         # `desired_size` - shoes size, integer between 24 and 50.
 
         # https://stackoverflow.com/a/18148872/5338270
-        return list(map(lambda x: x['url'], self._db_docs.find({ 'sizes': str(desired_size) })))
+        # TODO fix as we now store sizes in float, make search less strict.
+        return list(map(lambda x: x['url'], self._db_docs.find({ 'sizes': desired_size })))
 
     def get_urls_match_color(self, color):
+        # TODO use stemming (or better mongo text search) on color names.
         return list(map(lambda x: x['url'], self._db_docs.find({ 'colors': color })))
 
     def ranked_documents(self, terms: [str]) -> [str, float]:

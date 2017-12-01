@@ -10,6 +10,7 @@ from data_extractor import extract_and_write_json
 # www.wildberries.ru/_catalog##1008827##detail.aspx.html # https://www.wildberries.ru/catalog/1008827/detail.aspx
 # www.wildberries.ru/_catalog##1151338##detail.aspx.html
 # https://my-shop.ru/shop/products/1359627.html
+# my-shop.ru/_shop##products##2847365.html.meta
 # http://www.top-shop.ru/product/1936663-trend-myagkost-cvet-seryy/ # www.top-shop.ru/_product##1936663-trend-myagkost-cvet-seryy##.html
 # www.top-shop.ru/_product##146455-bradex-pedikyur##.meta
 # www.top-shop.ru/_product##380547-walkmaxx-snow-boots##.meta
@@ -17,12 +18,13 @@ from data_extractor import extract_and_write_json
 
 if __name__ == '__main__':
     # load file.
-    start = 3
+    start = 0
     meta_names = ['kctati.ru/_catalog##botilony##botilony_cupage_11##.meta',
                   'www.kinderly.ru/_product##zebra-12027-1-sapogi-shkolnye-uteplennye-12-par-v-kor.meta',
                   'www.wildberries.ru/_catalog##1008827##detail.aspx.meta',
                   'www.wildberries.ru/_catalog##1151338##detail.aspx.meta',
                   'my-shop.ru/_shop##products##1359627.html.meta',
+                  'my-shop.ru/_shop##products##2847365.html.meta',
                   'www.top-shop.ru/_product##380547-walkmaxx-snow-boots##.meta',
                   'www.ozon.ru/_context##detail##id##140430339##.meta'
                   ][start:]
@@ -33,15 +35,16 @@ if __name__ == '__main__':
                                  'url': 'https://kctati.ru/catalog/botilony/botilony_cupage_11/',
                                  'size': 67160,
                                  'name': 'Ботильоны женские CUPAGE',
-                                 'description': 'Ботильоны Cupage спасут вас от низких температур и окружат теплом и уютом на многие годы. '
-                                                'Натуральная кожа и прочная текстура идеально сядут на ногах. '
-                                                'С черным классическим цветом вы сможете комбинировать туфли с каким угодно видом одежды. '
-                                                'Необычная вставка сделает дизайн очень стильным, поэтому вы без труда привлечете восторженные взгляды окружающих. '
-                                                'Устойчивые каблуки не позволят вам упасть, а мягкие стельки защитят от мозолей и усталости. '
-                                                'Прочтите ботильоны Cupage отзывы и убедитесь в достоверности вышеуказанной информации.',
+                                 # 'description': 'Ботильоны Cupage спасут вас от низких температур и окружат теплом и уютом на многие годы. '
+                                 #                'Натуральная кожа и прочная текстура идеально сядут на ногах. '
+                                 #                'С черным классическим цветом вы сможете комбинировать туфли с каким угодно видом одежды. '
+                                 #                'Необычная вставка сделает дизайн очень стильным, поэтому вы без труда привлечете восторженные взгляды окружающих. '
+                                 #                'Устойчивые каблуки не позволят вам упасть, а мягкие стельки защитят от мозолей и усталости. '
+                                 #                'Прочтите ботильоны Cupage отзывы и убедитесь в достоверности вышеуказанной информации.',
                                  'brand': 'Россия',
                                  'image': 'http://kctati.ru/upload/iblock/3c4/3c4ef9d8a437d7849478c78d3bd36b60.jpg',
                                  'price': 7290,
+                                 'colors': ['Черный'],
                                  'hash': '8852b59e2e59bed9803dd47b0d3e4a92',
                                  'attributes': {'Обхват голенища макс. р-ра': '37',
                                                 'Артикул': 'УТ-00030101',
@@ -50,16 +53,15 @@ if __name__ == '__main__':
                                                 'АртикулПроизводителя': 'D88-3-M8',
                                                 'Страна производитель': 'Россия',
                                                 'Сезон': 'Зима',
-                                                'Категория': 'Ботильоны',
                                                 'Материал подкладки': 'Мех натуральный',
                                                 'Полнота': '8',
                                                 'Высота голенища 37 р-ра': '20',
-                                                'Цвет': 'Черный',
                                                 'Высота каблука': '5',
                                                 'Материал стельки': 'Мех натуральный',
                                                 'Бренд': 'CUPAGE',
                                                 'Обхват щиколотки 37 р-ра': '32',
                                                 'Материал верха': 'Замша нат.+кожа'},
+                                 # 'sizes': [35, 36, 37, 38, 39, 40],
                                  'type': 'Ботильоны',
                                  'gender': 'Ж'
                              },
@@ -110,12 +112,44 @@ if __name__ == '__main__':
                                                 'Вид каблука': 'платформа; без каблука',
                                                 'Страна производитель': 'Китай'},
                                  'sizes': [40, 41, 42, 43],
-                                 'url': 'https://www.wildberries.ru/catalog/1008827/detail.aspx', 'name': 'S',
+                                 'url': 'https://www.wildberries.ru/catalog/1008827/detail.aspx',
+                                 'name': 'Сабо Classic',
                                  'size': 76761, 'hash': '63d3fb06ce26f83d9ab1910627ee30b0', 'colors': ['розовый'],
                                  'gender': 'Ж', 'shop': 'www.wildberries.ru',
+                                 'brand': 'CROCS',
                                  'image': 'http://img1.wbstatic.net/large/new/1000000/1008827-1.jpg', 'price': 1550
                              },
-                             {},
+                             {
+                                 'attributes': {
+                                     'Материал подкладки обуви': 'Текстиль',
+                                     'Вид каблука': 'платформа',
+                                     'Сезон': 'круглогодичный',
+                                     'Комплектация:': 'пинетки',
+                                     'Пол': 'Малыши',
+                                     'Материал подошвы обуви': 'полиуретан',
+                                     'Страна бренда': 'Соединенные Штаты',
+                                     'Страна производитель': 'Китай'
+                                 },
+                                 'name': 'Пинетки',
+                                 'brand': 'Luvable Friends',
+                                 'type': 'пинетки',
+                                 'url': 'https://www.wildberries.ru/catalog/1151338/detail.aspx',
+                                 'size': 75312,
+                                 'shop': 'www.wildberries.ru',
+                                 'colors': [
+                                     'темно-синий',
+                                     'оранжевый',
+                                     'белый'
+                                 ],
+                                 'image': 'http://img2.wbstatic.net/large/new/1150000/1151338-1.jpg',
+                                 'hash': '81f3791fd0ff497ec53496ad549c3239', 'sizes': [],
+                                 'description': 'Высокие кеды-пинетки "Зигзаг" на липучке для мальчика. '
+                                                'Стильная модель с нескользящей подошвой. '
+                                                'Мягкая резинка-шнурок не сдавливает ножку малыша, '
+                                                'способствует ее правильному формированию.',
+                                 'price': 590,
+                                 'gender': 'М'
+                             },
                              {
                                  'name': 'Тапочки с "памятью" "Комфорт"',
                                  'shop': 'my-shop.ru',
@@ -136,7 +170,27 @@ if __name__ == '__main__':
                                  'price': 674,
                                  'url': 'https://my-shop.ru/shop/products/1359627.html',
                                  'sizes': [37, 38, 39],
-                                 'size': 41536},
+                                 'size': 41536
+                             },
+                             {
+                                 'shop': 'my-shop.ru',
+                                 'url': 'https://my-shop.ru/shop/products/2847365.html',
+                                 'hash': 'e64f6ef1715c3ee3e6b71afca7299cdf',
+                                 'size': 28149,
+                                 'name': 'Полуботинки "Worker. Траффик',
+                                 'image': 'http://static.my-shop.ru/product/2/285/2847365.jpg',
+                                 'sizes': [44.0],
+                                 'price': 1645,
+                                 'attributes': {
+                                     'цвет': 'черный',
+                                     'код системы скидок': '25',
+                                     'код в My-shop.ru': '2847365',
+                                     'материал': 'полиуретан, кожа',
+                                     'страна изготовления': 'Россия',
+                                     'артикул у производителя': '9401'
+                                 }
+                             }
+                             ,
                              {
                                  'image': 'http://cdn2.top-shop.ru/ee/d4/normal_68550eaa6a7e8dcfccdd017dffa3d4ee.JPG',
                                  'price': 5999,
@@ -181,7 +235,7 @@ if __name__ == '__main__':
                                  'image': 'http://ozon-st.cdn.ngenix.net/multimedia/boots/1018405311.jpg',
                                  'sizes': [36],
                                  'brand': 'Inblu',
-                                 'name': ['Сабо Inblu'],
+                                 'name': 'Сабо Inblu',
                                  'gender': 'Ж',
                                  'colors': ['черный', 'серебристый'],
                                  'description': 'Эффектные сабо от Inblu подчеркнут вашу смелую натуру! '
@@ -193,6 +247,39 @@ if __name__ == '__main__':
                                  'price': 3444
                              }
                          ][start:]
+
+    def compare_lists(first, second):
+        for f in first:
+            if not f in second:
+                print("{} is absent in expected".format(f))
+        for s in second:
+            if not s in first:
+                print("{} is absent in json_data".format(s))
+
+    def compare_dictionaries(json_data, expected):
+        if json_data == expected:
+            return
+        if json_data.keys() != expected.keys():
+            # print(prefix + 'Differs in keys:'.format(json_data.keys(), expected.keys()))
+            # print(compare_lists(json_data.keys(), expected.keys()))
+            print(json_data, "!= ", expected)
+        elif len([None for key in json_data.keys() if json_data.get(key) != expected.get(key)]) <= 3:
+            print(prefix + ": ")
+            for key in json_data.keys():
+                json_data_value = json_data.get(key)
+                expected_value = expected.get(key)
+                if json_data_value != expected_value:
+                    if type(json_data_value) != type(expected_value):
+                        print(' differ in key {} with types: {} != {}'.format(key, json_data_value, expected_value))
+                    elif type(json_data_value) == dict:
+                        print(' differ in key "{}":'.format(key))
+                        compare_dictionaries(json_data_value, expected_value)
+                    elif type(json_data_value) == list:
+                        print(' differ in key "{}:'.format(key))
+                        compare_lists(json_data_value, expected_value)
+                    else:
+                        print(' differ in key "{}": {} != {}'.format(key, json_data_value, expected_value))
+
     for i, meta_path in enumerate(meta_files):
         meta_file = pathlib.Path(meta_path)
         output_path = extract_and_write_json(meta_file, "/tmp/")
@@ -200,6 +287,8 @@ if __name__ == '__main__':
             json_data = json.load(output_file)
             expected = extraction_results[i]
             if json_data != expected:
-                print("[FAIL] {} json_data: {} != expected: {}".format(meta_names[i], json_data, expected))
+                # TODO compare json_data with expected field-wise if difference is not so vast.
+                prefix = '[FAIL] {} '.format(meta_names[i])
+                compare_dictionaries(json_data, expected)
             else:
                 print("[ OK ] {} ".format(meta_names[i]))

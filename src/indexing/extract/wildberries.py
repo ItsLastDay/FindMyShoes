@@ -20,29 +20,31 @@ class WildberriesExtractor(AbstractDataExtractor):
     def _parse_name(self):
         data = self._get_data_by_selector(self._NAME_SELECTOR)
         if len(data) > 0:
+            # cutting brand's tail.
             self._save_raw(JSONKey.NAME_KEY, ', '.join(data[0].split(', ')[:-1]))
 
     def _parse_brand(self):
         data = self._get_data_by_selector(self._NAME_SELECTOR)
         if len(data) > 0:
-            v = data[0].split(', ')[1]
+            v = data[0].split(', ')[-1]
             if len(v) > 1:
-                self._save_raw(JSONKey.NAME_KEY, v[-1].strip())
+                self._save_raw(JSONKey.BRAND_KEY, v.strip())
 
     def _parse_sizes(self):
         # "35/5" "36/6" "41-42/6"
         def process_size(size):
-            first = size.split('/')[0]
-            if '-' in first:
+            size_str = size.split('/')[0]
+            if 'мес' in size_str:
+                return []
+            if '-' in size_str and all(map(lambda s: s.isdigit() and len(s) > 0, size_str.split('-'))):
                 # dirty hack for wildberries - child shoes' sizes can be like '12-18мес'
-                if 'мес' in first:
-                    return []
-                a, b = map(int, first.split('-'))
-                return range(a, b + 1)
+                abstrs = size_str.split('-')
+                a, b = map(int, size_str.split('-'))
+                return list(map(float, range(a, b + 1)))
             else:
-                first = first.replace(',', '.')
-                if all(map(lambda c: c.isdigit() or c == '.', first)):
-                    return [float(first)]
+                size_str = size_str.replace(',', '.')
+                if all(map(lambda c: c.isdigit() or c == '.', size_str)):
+                    return [float(size_str)]
                 else:
                     return []
 
@@ -56,6 +58,14 @@ class WildberriesExtractor(AbstractDataExtractor):
                 res_sizes |= set(process_size(span.text))
 
         self._save_raw(JSONKey.SIZES_KEY, list(res_sizes))
+
+    def _parse_colors(self):
+        data = self._selectable_data.cssselect(self._COLORS_SELECTOR)
+        colors = []
+        for d in data:
+            if d.text is not None:
+                colors += d.text.split(', ')
+        self._save_raw(JSONKey.COLORS_KEY, colors)
 
     # def _parse_image(self):
     #     data = self._selectable_data.cssselect(self._IMG_SELECTOR)

@@ -3,6 +3,8 @@ from extract.abstract import extractor_for, AbstractDataExtractor, JSONKey
 
 logger = getLogger('kctati_extract')
 
+# TODO convert 'П/ботинки' into 'полуботинки' in name.
+
 # https://kctati.ru/catalog/botforty/botforty_ascalini_11/
 
 @extractor_for('kctati.ru')
@@ -12,13 +14,20 @@ class KctatiExtractor(AbstractDataExtractor):
 
     _NAME_SELECTOR = 'div.dop_info > p'
     _BRAND_SELECTOR = 'ul[class="display_properties lsnn"] > li:nth-child(2) > span.opt_val'
-    _TYPE_SELECTOR = 'ul[class="display_properties lsnn"] > li:nth-child(11) > span.opt_val'
-    _COLORS_SELECTOR = 'ul[class="display_properties lsnn"] > li:nth-child(9) > span.opt_val'
-    _SIZES_SELECTOR = 'div#new_SIZE > div > span > label' # FIXME uses js, doesn't work.
+    _TYPE_SELECTOR = None # in attributes
+    _COLORS_SELECTOR = None # in attributes
+
+    # FIXME uses js, doesn't work.
+    # _SIZES_SELECTOR = 'div#new_SIZE > div > span > label'
+
+    # FIXME should work if no description, but it doesn't((
+    # _SIZES_SELECTOR = 'ul[class="product_info df"] > li:nth-last-child(1) ul > li'
+
     _GENDER_SELECTOR = 'ul[class="breadcrumb-navigation red"] > li:nth-child(5) span'
     _IMG_SELECTOR = 'img#detail_picture'
 
-    _DESCRIPTION_SELECTOR = 'ul[class="product_info df"] > li:nth-last-child(1)'
+    # can be just disclaimer for sizes, but probable description as well.
+    # _DESCRIPTION_SELECTOR = 'ul[class="product_info df"] > li:nth-last-child(1)'
 
     _ATTRIBUTE_NAMES_SELECTOR = 'ul[class="display_properties lsnn"] > li > span:nth-child(1)'
     _ATTRIBUTE_VALUES_SELECTOR = 'ul[class="display_properties lsnn"] > li > span.opt_val'
@@ -42,8 +51,13 @@ class KctatiExtractor(AbstractDataExtractor):
         for name, value_tag in zip(names, values_tags):
             aa = value_tag.find('a')
             if aa is None:
-                attributes[name] = value_tag.text
+                value = value_tag.text
             else:
-                attributes[name] = aa.text
-
+                value = aa.text
+            if 'Цвет' in name:
+                self._save_raw(JSONKey.COLORS_KEY, value.split(', '))
+            elif 'Категория' in name:
+                self._save_raw(JSONKey.TYPE_KEY, value)
+            else:
+                attributes[name] = value
         self._save_raw(JSONKey.ATTRIBUTES_KEY, attributes)

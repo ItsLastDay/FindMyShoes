@@ -18,7 +18,7 @@ class OzonExtractor(AbstractDataExtractor):
         data = self._selectable_data.cssselect(self._NAME_SELECTOR)
         if len(data) == 0 or data[0].text is None:
             return
-        namestr = data[0].text.split(',')[:-1]
+        namestr = ','.join(data[0].text.split(',')[:-1]).strip()
         self._save_raw(JSONKey.NAME_KEY, namestr)
 
     def _parse_brand(self):
@@ -45,4 +45,4 @@ class OzonExtractor(AbstractDataExtractor):
         sizestr = data[0].text.split(', размер ')[-1]
         if not sizestr.isdigit():
             return
-        self._save_raw(JSONKey.SIZES_KEY, self.process_sizes([sizestr]))
+        self._save_raw(JSONKey.SIZES_KEY, AbstractDataExtractor.process_sizes([sizestr]))

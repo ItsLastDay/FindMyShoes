@@ -208,8 +208,8 @@ class AbstractDataExtractor:
             # There can be sizes like "35-43"
             if '-' in sizes[0]:
                 start, stop = sizes[0].split('-')
-                sizes = list(range(int(start), int(stop) + 1))
-            return list(map(int, sizes))
+                return list(map(float, range(int(start), int(stop) + 1)))
+            return list(map(lambda sizestr: float(sizestr.replace(',', '.')), sizes))
         return None
 
     def _parse_sizes(self):
@@ -242,7 +242,6 @@ class AbstractDataExtractor:
     def _parse_attributes(self):
         if self._ATTRIBUTE_NAMES_SELECTOR is None or self._ATTRIBUTE_VALUES_SELECTOR is None:
             return
-
         attributes = dict()
         for name, val in zip(self._get_data_by_selector(self._ATTRIBUTE_NAMES_SELECTOR),
                              self._get_data_by_selector(self._ATTRIBUTE_VALUES_SELECTOR)):

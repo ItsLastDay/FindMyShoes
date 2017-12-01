@@ -17,9 +17,14 @@ class MyshopExtractor(AbstractDataExtractor):
     _ATTRIBUTES_TABLE_SELECTOR = 'table[class="bsp0 w100p"]'
 
     def _parse_name(self):
-        name_str = self._selectable_data.cssselect(self._NAME_SELECTOR)[0].text
-        name = ','.join(name_str.split(',')[:-1])
-        self._save_raw(JSONKey.NAME_KEY, name)
+        namestr = self._selectable_data.cssselect(self._NAME_SELECTOR)[0].text
+
+        # 'Тапочки с "памятью" "Комфорт", размер: 37-39'
+        name = ','.join(namestr.split(',')[:-1])
+        if len(name) == 0 and '(' in namestr:
+            name = namestr[:namestr.find('(')].strip()
+        if name is not None and len(name) > 0:
+            self._save_raw(JSONKey.NAME_KEY, name)
 
     def _parse_sizes(self):
         # Стельки Salamander "Anti Odour" (с активированным углем), универсальные, размер 36-46
@@ -39,9 +44,9 @@ class MyshopExtractor(AbstractDataExtractor):
                             i += 1
                     if '-' in size_str:
                         a, b = list(map(int, size_str.split('-')))
-                        sizes = list(range(a, b + 1))
+                        sizes = list(map(float, range(a, b + 1)))
                     else:
-                        sizes = [int(size_str)]
+                        sizes = [float(size_str)]
                     self._save_raw(JSONKey.SIZES_KEY, sizes)
         except Exception:
             return
@@ -93,4 +98,5 @@ class MyshopExtractor(AbstractDataExtractor):
             return text if len(text) > 0 else None
 
         reviews = list(filter(lambda text: text is not None, map(lambda br: process_review(br.tail), brs)))
-        self._save_raw(JSONKey.REVIEWS_KEY, reviews)
+        if len(reviews) > 0:
+            self._save_raw(JSONKey.REVIEWS_KEY, reviews)
