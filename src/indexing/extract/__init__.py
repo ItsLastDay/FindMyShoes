@@ -8,3 +8,9 @@ from extract.bonprix import BonprixExtractor
 from extract.lamoda import LamodaExtractor
 from extract.respect import RespectExtractor
 from extract.ecco import EccoExtractor
+from extract.kctati import KctatiExtractor
+from extract.kinderly import KinderlyExtractor
+from extract.wildberries import WildberriesExtractor
+from extract.myshop import MyshopExtractor
+from extract.topshop import TopshopExtractor
+from extract.ozon import OzonExtractor

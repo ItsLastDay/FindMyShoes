@@ -12,6 +12,7 @@ import json
 import copy
 
 import urllib.parse
+from typing import Optional
 
 from extract import get_extractor_for_domain
 
@@ -58,6 +59,8 @@ def extract_and_write_json(meta_file, json_dir, limit_by_domain=inf):
         result_path = pathlib.Path(json_dir) / ('{}_{}_{}.json'.format(domain, meta_info['path'], meta_info['hash']))
         with result_path.open('w') as out:
             json.dump(result_dict, out, ensure_ascii=False)
+        return result_path
+    return None
 
 
 def main():

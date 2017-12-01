@@ -1,4 +1,5 @@
 from typing import Optional
+from functools import partialmethod
 
 import lxml
 import lxml.html.clean
@@ -168,17 +169,19 @@ class AbstractDataExtractor:
     def _parse_colors(self):
         self._save_array(JSONKey.COLORS_KEY, self._COLORS_SELECTOR)
 
+    @staticmethod
+    def price_from_string(prices_array: str):
+        if prices_array:
+            s = prices_array[0]
+            num_string = ''.join(c for c in s if c.isdigit())
+            if num_string:
+                return int(num_string)
+            else:
+                return s
+        return None
+
     def _parse_price(self):
-        def price_from_string(prices_array: str) -> Optional[int]:
-            if prices_array:
-                s = prices_array[0]
-                num_string = ''.join(c for c in s if c.isdigit())
-                if num_string:
-                    return int(num_string)
-                else:
-                    return s
-            return None
-        self._save(JSONKey.PRICE_KEY, self._PRICE_SELECTOR, price_from_string)
+        self._save(JSONKey.PRICE_KEY, self._PRICE_SELECTOR, AbstractDataExtractor.price_from_string)
 
     def _parse_image(self):
         if not self._IMG_SELECTOR:
@@ -187,38 +190,48 @@ class AbstractDataExtractor:
         if not data:
             return
         x = data[0].get('src')
+        if not x:
+            x = data[0].get('href')
+        if not x:
+            return
+        if x.startswith('//'):
+            x = 'http:' + x
         if x.startswith('/'):
             x = self._shop + x
         if not x.startswith('http'):
             x = 'http://' + x
         self._result_dict_ref[JSONKey.IMG_KEY] = x
 
+    @staticmethod
+    def process_sizes(sizes: [str]):
+        if sizes:
+            # There can be sizes like "35-43"
+            if '-' in sizes[0]:
+                start, stop = sizes[0].split('-')
+                sizes = list(range(int(start), int(stop) + 1))
+            return list(map(int, sizes))
+        return None
+
     def _parse_sizes(self):
         # TODO allow half sizes and check how they are specified at different shops.
-        def process_sizes(sizes: [str]):
-            if sizes:
-                # There can be sizes like "35-43"
-                if '-' in sizes[0]:
-                    start, stop = sizes[0].split('-')
-                    sizes = list(range(int(start), int(stop) + 1))
-                return list(map(str, sizes))
+        self._save(JSONKey.SIZES_KEY, self._SIZES_SELECTOR, AbstractDataExtractor.process_sizes)
+
+    @staticmethod
+    def unify_gender(ss: [str]) -> Optional[str]:
+        if ss is None or len(ss) == 0:
             return None
-        self._save(JSONKey.SIZES_KEY, self._SIZES_SELECTOR, process_sizes)
+        string_value = ss[0]
+        si = string_value.lower()
+        if 'жен' in si:
+            return JSONKey.GENDER_WOMEN
+        elif 'муж' in si:
+            return JSONKey.GENDER_MEN
+        elif 'дет' in si:
+            return JSONKey.GENDER_CHILDREN
+        return string_value
 
     def _parse_gender(self):
-        def unify_gender(ss: [str]) -> str:
-            # assert len(ss) == 1
-            string_value = ss[0]
-            si = string_value.lower()
-            if 'жен' in si:
-                return JSONKey.GENDER_WOMEN
-            elif 'муж' in si:
-                return JSONKey.GENDER_MEN
-            elif 'дет' in si:
-                return JSONKey.GENDER_CHILDREN
-            return string_value
-
-        self._save(JSONKey.GENDER_KEY, self._GENDER_SELECTOR, unify_gender)
+        self._save(JSONKey.GENDER_KEY, self._GENDER_SELECTOR, AbstractDataExtractor.unify_gender)
 
     def _parse_description(self):
         self._save(JSONKey.DESCRIPTION_KEY, self._DESCRIPTION_SELECTOR)
