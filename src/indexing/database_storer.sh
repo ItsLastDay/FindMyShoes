@@ -14,4 +14,9 @@ do
 done > "$tmp_file"
 
 mongoimport --db=findmyshoes --collection=data --drop "$tmp_file"
+mongo --eval "
+    db.data.createIndex({ 'url' : 1});
+    db.data.createIndex({ 'colors' : 1}); 
+    db.data.createIndex({ 'sizes' : 1});
+    " findmyshoes
 

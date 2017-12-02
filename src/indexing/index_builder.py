@@ -18,8 +18,8 @@ from text_utils import TextExtractor
 INVERTED_ENTRY_SIZE = struct.calcsize('i')
 
 # should stay hashable for searcher.
+# TODO remove those entries contained in database.
 DocumentEntry = namedtuple('DocumentEntry', ['path', 'url', 'length', 'idx', 'sizes', 'price', 'name', 'image'])
-
 
 class IndexBuilder:
     def __init__(self, documents):
@@ -27,7 +27,7 @@ class IndexBuilder:
         self.documents_paths = documents
 
     @staticmethod
-    def _get_words_from_json(json_data):
+    def _get_words_from_json(json_data, normalize=True):
         # add name?
         attributes = json_data.get('attributes')
         if attributes is not None:
@@ -40,7 +40,10 @@ class IndexBuilder:
             '\n'.join(json_data.get('reviews', '')),
             attributes_text
         ])
-        return TextExtractor.get_normal_words_from_text(product_description)
+        if normalize:
+            return TextExtractor.get_normal_words_from_text(product_description)
+        else:
+            return TextExtractor.get_words_from_text(product_description)
 
     @staticmethod
     def _get_words_from_path(doc_path):

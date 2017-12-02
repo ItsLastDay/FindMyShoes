@@ -49,13 +49,21 @@ class TextExtractor:
         return TextExtractor.tokenizer.tokenize(sent)
 
     @staticmethod
-    def get_normal_words_from_text(text: str) -> [str]:
+    def get_words_from_text(text: str) -> [str]:
         sentences = TextExtractor._split_by_sentences(text)
         words = []
         for sent in sentences:
             cur_words = TextExtractor.tokenize_sentence(sent)
             words.extend(cur_words)
+        return words
 
+    @staticmethod
+    def stem(word):
+        return TextExtractor.stemmer.stem(word)
+
+    @staticmethod
+    def get_normal_words_from_text(text: str) -> [str]:
+        words = TextExtractor.get_words_from_text(text)
         words = filter(TextExtractor.word_filter.match, words)
         words = map(lambda x: x.lower(), words)
 
@@ -63,7 +71,7 @@ class TextExtractor:
         words = filter(lambda word: word not in TextExtractor.stopwords, words)
 
         # not making stem forms unique.
-        words = map(TextExtractor.stemmer.stem, words)
+        words = map(TextExtractor.stem, words)
 
         return list(words)
 

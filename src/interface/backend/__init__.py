@@ -10,6 +10,7 @@ indexing_folder = os.path.abspath(os.path.join(cmd_folder, os.pardir, os.pardir,
 sys.path.append(indexing_folder)
 from searcher import QueryProcessor
 from index_reader import IndexReader
+from index_builder import IndexBuilder
 data_folder = os.path.abspath(os.path.join(cmd_folder, os.pardir, os.pardir, os.pardir, 'data', 'index'))
 
 
@@ -19,6 +20,7 @@ api = Api(app)
 
 api_base_url = '/api/v1'
 
+# TODO move into run_backend.py or another separate file.
 class Search(Resource):
     def __init__(self):
         index_reader = IndexReader(os.path.join(data_folder, 'inverted.bin'), 
@@ -36,18 +38,24 @@ class Search(Resource):
         query_string = parser.parse_args()
 
         print(query_string)
-        total_num, results = self._query_processor.get_ranked_docs(query_string['q'], page=int(query_string['page']))
-        results = list(map(lambda x: {
+        total_num, best_results, best_results_coincidence = self._query_processor.get_ranked_docs(
+            query_string['q'],
+            page=int(query_string['page'])
+        )
+
+        # TODO Retrieve document info from mongo.
+        best_results = list(map(lambda x, c: {
             'url': x[0].url,
             'name': x[0].name,
             'price': x[0].price,
             'sizes': x[0].sizes,
             'image': x[0].image,
-            'confidence': x[1]
-            }, results))
-        print(results)
+            'confidence': x[1],
+            'coincidence': c,
+            }, best_results, best_results_coincidence))
+        # print(best_results)
 
-        return [total_num, results]
+        return [total_num, best_results]
         
 
 api.add_resource(Search, api_base_url + '/search')

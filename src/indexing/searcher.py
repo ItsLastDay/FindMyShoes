@@ -11,6 +11,7 @@ import os.path
 logger = getLogger('searcher')
 
 from index_reader import IndexReader
+from index_builder import IndexBuilder
 from text_utils import TextExtractor
 from index_builder import DocumentEntry
 
@@ -39,11 +40,11 @@ class QueryProcessor:
         self._db_docs = self._db.data
 
         self._colors = make_colors_dict([
-            'белый', 
-            'бордовый', 
+            'белый',
+            'бордовый',
             'чёрный', 'черный',
             'розовый'
-            ])
+        ])
 
     def preprocess(self, query: str) -> [str]:
         """
@@ -77,16 +78,22 @@ class QueryProcessor:
             score += idf * fqd * (self._k1 + 1) / (fqd + self._k1 * (1 - self._b + self._b * doc.length / avgdl))
         return doc, score
 
+    # TODO implement passing projection.
+    def dbfind(self, command, projection={"_id": 0}):
+        projection_parameter = {}
+        projection_parameter.update(projection)
+        return self._db_docs.find(command, projection_parameter)
+
     def get_urls_match_size(self, desired_size):
         # `desired_size` - shoes size, integer between 24 and 50.
 
         # https://stackoverflow.com/a/18148872/5338270
         # TODO fix as we now store sizes in float, make search less strict.
-        return list(map(lambda x: x['url'], self._db_docs.find({ 'sizes': desired_size })))
+        return list(map(lambda x: x['url'], self.dbfind({'sizes': desired_size})))
 
     def get_urls_match_color(self, color):
         # TODO use stemming (or better mongo text search) on color names.
-        return list(map(lambda x: x['url'], self._db_docs.find({ 'colors': color })))
+        return list(map(lambda x: x['url'], self.dbfind({'colors': color})))
 
     def ranked_documents(self, terms: [str]) -> [str, float]:
         for term in terms:
@@ -110,10 +117,10 @@ class QueryProcessor:
         # in query, it is considered the desired shoe size (what else it could be?)
         for term in terms:
             try:
-                size = int(term)
+                size = float(term)
                 if 24 <= size <= 50:
                     good_urls &= set(self.get_urls_match_size(size))
-                    print(good_urls)
+                    # print(good_urls)
             except ValueError:
                 pass
 
@@ -135,15 +142,34 @@ class QueryProcessor:
 
         return list(filter(lambda x: x[0].url in good_urls, ranked_docs))
 
+    def get_coincidence_string(self, doc: DocumentEntry, terms: [str], neighbors=2) -> str:
+        objects = list(self.dbfind({'url': doc.url}))
+        if len(objects) == 0:
+            return ""
+        json_data = objects[0]
+        # FIXME bad architecture!!!
+        words = IndexBuilder._get_words_from_json(json_data, False)
+        n = len(words)
+        highlights = [False] * n
+        saved = [False] * n
+        for i, w in enumerate(words):
+            wstem = TextExtractor.stem(w)
+            if any(map(lambda t: wstem == TextExtractor.stem(t), terms)):
+                highlights[i] = True
+                for j in range(max(0, i - neighbors), min(i + neighbors + 1, n - 1)):
+                    saved[j] = True
+        return ' '.join('<b>{}</b>'.format(w) if h else w for w, h, s in zip(words, highlights, saved) if s)
+
     def get_ranked_docs(self, query_string, page=1, limit=10):
         terms = self.preprocess(query_string)
         documents_ranks = self.ranked_documents(terms)
         filtered_docs = self.filtered_documents(terms, documents_ranks)
         start = (page - 1) * limit
         stop = page * limit
-        best_documents_ranks = sorted(filtered_docs, 
-                key=lambda dr: dr[1], reverse=True)[start:stop]
-        return len(filtered_docs), best_documents_ranks
+        best_documents_ranks = sorted(filtered_docs,
+                                      key=lambda dr: dr[1], reverse=True)[start:stop]
+        best_documents_coincidence = [self.get_coincidence_string(dr[0], terms) for dr in best_documents_ranks]
+        return len(filtered_docs), best_documents_ranks, best_documents_coincidence
 
 
 if __name__ == '__main__':
@@ -152,7 +178,8 @@ if __name__ == '__main__':
     from common import default_index_dir, default_json_dir
     parser = argparse.ArgumentParser(description='Демонстрация работы индекса.\n'
                                                  'Вводите слова, получаете список документов, в которых слово встречается')
-    parser.add_argument("-i", "--inverted-index-path", type=str, default=os.path.join(default_index_dir(), 'inverted.bin'))
+    parser.add_argument("-i", "--inverted-index-path", type=str,
+                        default=os.path.join(default_index_dir(), 'inverted.bin'))
     parser.add_argument("-w", "--weight-path", type=str, default=os.path.join(default_index_dir(), 'weight.bin'))
     parser.add_argument("-d", "--dictionary", type=str, default=os.path.join(default_index_dir(), 'dictionary.txt'))
     parser.add_argument("--json-dir", type=str, default=default_json_dir())
@@ -162,9 +189,11 @@ if __name__ == '__main__':
         query_processor = QueryProcessor(index_reader, args.json_dir)
         logger.debug('shoes with 24 size:{}'.format(query_processor.get_urls_match_size(24)))
 
+
         def url_from_json(json_path):
             encoded_path = json_path[:json_path.rfind('##')]
             return encoded_path.replace('__', '/', 1).replace('##', '/')
+
 
         def process_query(query_string: str, limit=10):
             logger.debug("Processing query: " + query_string)
@@ -175,8 +204,10 @@ if __name__ == '__main__':
             filtered_docs = query_processor.filtered_documents(terms, documents_ranks)
             logger.debug("Documents after filtering: {}".format(len(filtered_docs)))
             best_documents_ranks = sorted(filtered_docs, key=lambda dr: dr[1], reverse=True)[:limit]
-            logger.info("Best options: {}".format(list((url_from_json(doc), rank) for doc, rank in best_documents_ranks)))
+            logger.info(
+                "Best options: {}".format(list((url_from_json(doc), rank) for doc, rank in best_documents_ranks)))
             return documents_ranks
+
 
         # process_query("сочные")
         # process_query("швы")
