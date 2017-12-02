@@ -16,10 +16,10 @@ from text_utils import TextExtractor
 from index_builder import DocumentEntry
 
 
-def make_colors_dict(colors):
+def make_colors_dict(color_set: [str]):
     res = dict()
-    for color in colors:
-        res[TextExtractor.get_normal_words_from_text(color)[0]] = color
+    for color in color_set:
+        res[TextExtractor.stem(color)] = color
     return res
 
 
@@ -39,12 +39,31 @@ class QueryProcessor:
         self._db = self._db_client.findmyshoes
         self._db_docs = self._db.data
 
-        self._colors = make_colors_dict([
-            'белый',
-            'бордовый',
-            'чёрный', 'черный',
-            'розовый'
-        ])
+        dbcolors = self._db_docs.aggregate([
+            {'$unwind': {'path': '$colors'}},
+            {'$project': {'_id': 0, 'colors': 1}},
+            {'$group': {
+                '_id': "$colors",
+                'count': {'$sum': 1}
+            }
+            },
+            {'$sort': {"count": -1}}
+        ]
+        )
+
+        def extract_hues(color_count):
+            if color_count['count'] > 10:
+                return []
+            raw = color_count['_id'].lower().strip().replace('ё', 'е')
+            for hue in ['темно-', 'светло-']:
+                if raw.startswith(hue):
+                    raw = raw[len(hue):]
+            hues = raw.split('/')
+            return list(filter(lambda hue: len(hue) > 0 and len(hue.split(' ')) == 1, hues))
+
+        hues = sum(list(map(extract_hues, dbcolors)), [])
+        colors = set(hues)
+        self._colors = make_colors_dict(colors)
 
     def preprocess(self, query: str) -> [str]:
         """
@@ -137,9 +156,8 @@ class QueryProcessor:
                 boosted_urls |= set(self.get_urls_match_color(self._colors[term]))
 
         for i in range(len(ranked_docs)):
-            if ranked_docs[i][0].url in boosted_urls:
-                ranked_docs[i] = (ranked_docs[i][0].url, ranked_docs[i][1] * 2)
-
+            if ranked_docs[i][0].url in boosted_urls:# and 'ozon' not in ranked_docs[i][0].url:
+                ranked_docs[i] = (ranked_docs[i][0], ranked_docs[i][1] * 2)
         return list(filter(lambda x: x[0].url in good_urls, ranked_docs))
 
     def get_coincidence_string(self, doc: DocumentEntry, terms: [str], neighbors=2) -> str:
@@ -176,6 +194,7 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
 
     from common import default_index_dir, default_json_dir
+
     parser = argparse.ArgumentParser(description='Демонстрация работы индекса.\n'
                                                  'Вводите слова, получаете список документов, в которых слово встречается')
     parser.add_argument("-i", "--inverted-index-path", type=str,
