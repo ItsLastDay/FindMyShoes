@@ -9,44 +9,44 @@
 
 
 
-### Зимние сапоги на натуральном меху 38 размера  
-https://my-shop.ru/shop/products/2879689.html  
+### Кожаные сапоги высокие для женщин  
+http://www.top-shop.ru/product/689174-burlesco-h26-cvet-seryy-belyy/  
 Оценка релевантности:   
 Оценка соответствия фильтрам:   
   
-https://my-shop.ru/shop/products/2879694.html  
+http://www.top-shop.ru/product/689178-burlesco-h26-cvet-siniy-fioletovyy/  
 Оценка релевантности:   
 Оценка соответствия фильтрам:   
   
-http://www.kinderly.ru/product/alaska-originale-sapogi-serebro  
+http://www.ozon.ru/context/detail/id/142209888/  
 Оценка релевантности:   
 Оценка соответствия фильтрам:   
   
-https://my-shop.ru/shop/products/2162872.html  
+http://www.ozon.ru/context/detail/id/139957392/  
 Оценка релевантности:   
 Оценка соответствия фильтрам:   
   
-http://www.kinderly.ru/product/mursu-201153-botinki-shkolnye-malchikovye  
+http://www.ozon.ru/context/detail/id/139957389/  
 Оценка релевантности:   
 Оценка соответствия фильтрам:   
   
-https://www.lamoda.ru/p/co012awwox73/shoes-covani-sapogi/  
+http://www.ozon.ru/context/detail/id/139957384/  
 Оценка релевантности:   
 Оценка соответствия фильтрам:   
   
-https://my-shop.ru/shop/products/2162891.html  
+http://www.ozon.ru/context/detail/id/139957538/  
 Оценка релевантности:   
 Оценка соответствия фильтрам:   
   
-https://my-shop.ru/shop/products/2318059.html  
+http://www.ozon.ru/context/detail/id/139957393/  
 Оценка релевантности:   
 Оценка соответствия фильтрам:   
   
-https://my-shop.ru/shop/products/2463164.html  
+http://www.ozon.ru/context/detail/id/142209889/  
 Оценка релевантности:   
 Оценка соответствия фильтрам:   
   
-https://my-shop.ru/shop/products/2318115.html  
+http://www.ozon.ru/context/detail/id/139957391/  
 Оценка релевантности:   
 Оценка соответствия фильтрам:   
   
@@ -99,44 +99,44 @@ http://www.ozon.ru/context/detail/id/135068024/
   
   
 
-### Красные туфли на платформе 10 см летние  
-https://www.lamoda.ru/p/ma382awwrp26/shoes-mallanee-tufli/  
+### Коричневые cандалии спортивные с открытым носком 39 размера  
+https://www.bonprix.ru/produkty/slipery-korichnevyj-928429/  
 Оценка релевантности:   
 Оценка соответствия фильтрам:   
   
-https://www.lamoda.ru/p/su013awtlm61/shoes-supermode-tufli/  
+https://www.bonprix.ru/produkty/zamshevye-botinki-korichnevyj-937760/  
 Оценка релевантности:   
 Оценка соответствия фильтрам:   
   
-https://www.lamoda.ru/p/sw010awrwj95/shoes-sweetshoes-tufli/  
+https://www.bonprix.ru/produkty/slipery-v-sportivnom-stile-korichnevyj-915052/  
 Оценка релевантности:   
 Оценка соответствия фильтрам:   
   
-https://www.lamoda.ru/p/ta171awozo70/shoes-tamaris-tufli/  
+https://www.bonprix.ru/produkty/slipery-chernyj-908516/  
 Оценка релевантности:   
 Оценка соответствия фильтрам:   
   
-https://www.lamoda.ru/p/be058awqtj24/shoes-bellamica-kedy/  
+https://www.bonprix.ru/produkty/kozhanye-botinki-korichnevyj-924681/  
 Оценка релевантности:   
 Оценка соответствия фильтрам:   
   
-https://www.lamoda.ru/p/ma129awtbo95/shoes-madaemme-bosonozhki/  
+https://www.bonprix.ru/produkty/zamshevye-botinki-temno-sinij-934738/  
 Оценка релевантности:   
 Оценка соответствия фильтрам:   
   
-https://www.lamoda.ru/p/id005awtov37/shoes-idealshoes-bosonozhki/  
+https://www.bonprix.ru/produkty/kozhanye-botinki-na-shnurovke-korichnevyj-920464/  
 Оценка релевантности:   
 Оценка соответствия фильтрам:   
   
-https://www.lamoda.ru/p/ro042awtnz41/shoes-roberto-sandalii/  
+https://www.bonprix.ru/produkty/slipery-v-sportivnom-stile-chernyj-925047/  
 Оценка релевантности:   
 Оценка соответствия фильтрам:   
   
-https://my-shop.ru/shop/products/2160859.html  
+https://www.bonprix.ru/produkty/slipery-v-sportivnom-stile-indigo-959264/  
 Оценка релевантности:   
 Оценка соответствия фильтрам:   
   
-https://www.bonprix.ru/produkty/tufli-krasnyj-971149/  
+https://www.bonprix.ru/produkty/krossovki-korichnevyj-903885/  
 Оценка релевантности:   
 Оценка соответствия фильтрам:   
   
@@ -189,44 +189,44 @@ https://www.wildberries.ru/catalog/3779471/detail.aspx
   
   
 
-### Кожаные сапоги высокие для женщин  
-http://www.top-shop.ru/product/689174-burlesco-h26-cvet-seryy-belyy/  
+### Красные туфли на платформе 10 см летние  
+https://www.lamoda.ru/p/ma382awwrp26/shoes-mallanee-tufli/  
 Оценка релевантности:   
 Оценка соответствия фильтрам:   
   
-http://www.top-shop.ru/product/689178-burlesco-h26-cvet-siniy-fioletovyy/  
+https://www.lamoda.ru/p/su013awtlm61/shoes-supermode-tufli/  
 Оценка релевантности:   
 Оценка соответствия фильтрам:   
   
-http://www.ozon.ru/context/detail/id/142209888/  
+https://www.lamoda.ru/p/sw010awrwj95/shoes-sweetshoes-tufli/  
 Оценка релевантности:   
 Оценка соответствия фильтрам:   
   
-http://www.ozon.ru/context/detail/id/139957392/  
+https://www.lamoda.ru/p/ta171awozo70/shoes-tamaris-tufli/  
 Оценка релевантности:   
 Оценка соответствия фильтрам:   
   
-http://www.ozon.ru/context/detail/id/139957389/  
+https://www.lamoda.ru/p/be058awqtj24/shoes-bellamica-kedy/  
 Оценка релевантности:   
 Оценка соответствия фильтрам:   
   
-http://www.ozon.ru/context/detail/id/139957384/  
+https://www.lamoda.ru/p/ma129awtbo95/shoes-madaemme-bosonozhki/  
 Оценка релевантности:   
 Оценка соответствия фильтрам:   
   
-http://www.ozon.ru/context/detail/id/139957538/  
+https://www.lamoda.ru/p/id005awtov37/shoes-idealshoes-bosonozhki/  
 Оценка релевантности:   
 Оценка соответствия фильтрам:   
   
-http://www.ozon.ru/context/detail/id/139957393/  
+https://www.lamoda.ru/p/ro042awtnz41/shoes-roberto-sandalii/  
 Оценка релевантности:   
 Оценка соответствия фильтрам:   
   
-http://www.ozon.ru/context/detail/id/142209889/  
+https://my-shop.ru/shop/products/2160859.html  
 Оценка релевантности:   
 Оценка соответствия фильтрам:   
   
-http://www.ozon.ru/context/detail/id/139957391/  
+https://www.bonprix.ru/produkty/tufli-krasnyj-971149/  
 Оценка релевантности:   
 Оценка соответствия фильтрам:   
   
