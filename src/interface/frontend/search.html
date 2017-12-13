@@ -31,7 +31,10 @@
 </thead>
 <tr class="row" ng-repeat="result in results[1]">
     <td class="col-md-1">{{$index + 1}}</td>
-    <td class="col-md-4"><a href="{{result.url}}">{{result.name}}</a></td>
+    <td class="col-md-4"><a href="{{result.url}}">
+            {{result.name}}
+            <p ng-if="is_empty(result.name)">{{result.url}}</p>
+        </a></td>
     <td class="col-md-2"><img style="max-height: 100%; max-width: 100%" src="{{result.image}}" title="Доступные размеры: {{result.sizes}}"/></td>
     <td class="col-md-5" ng-bind-html="results[1][$index].coincidence"></td>
     <td class="col-md-1">{{result.price}}</td>

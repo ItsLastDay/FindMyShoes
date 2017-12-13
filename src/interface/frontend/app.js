@@ -23,6 +23,10 @@ app.config(function($routeProvider) {
 
 app.controller('mainController', function($scope, $sce, Search) {
     $scope.page = 1;
+    $scope.is_empty = function(obj) {
+        console.log(obj);
+        return obj === null;
+    }
     $scope.inc_page = function() {
         $scope.page += 1;
         $scope.search();
