@@ -32,7 +32,8 @@ for person in ['Mike', 'Andrey', 'Ivan', 'Vlad', 'Anya']:
         print('Спасибо, что участвуете в оценке релевантности документов для нашего проекта FindMyShoes! Ниже представлено несколько запросов, а также топ-10 документов, выданных нашей системой по запросу. Мы просим вас поставить для каждого документа две оценки:', file=person_task)
         print(' - оценку релевантности - число от 1 до 5', file=person_task)
         print(' - оценку соответствия фильтрам - число от 0 до 1\n', file=person_task)
-        print('Критерии оценки вы можете посмотреть [здесь](https://github.com/ItsLastDay/FindMyShoes/blob/master/docs/assessment/criteria.md).', file=person_task)
+        print('Критерии оценки вы можете посмотреть [здесь](https://github.com/ItsLastDay/FindMyShoes/blob/master/docs/assessment/criteria.md).  ', file=person_task)
+        print('Чтобы внести свои оценки в файл, сделайте pull request.', file=person_task)
         print('\n\n\n', file=person_task)
         
         for i in range(min(len(all_tasks), 5)):

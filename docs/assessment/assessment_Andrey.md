@@ -4,55 +4,11 @@
  - оценку релевантности - число от 1 до 5
  - оценку соответствия фильтрам - число от 0 до 1
 
-Критерии оценки вы можете посмотреть [здесь](https://github.com/ItsLastDay/FindMyShoes/blob/master/docs/assessment/criteria.md).
+Критерии оценки вы можете посмотреть [здесь](https://github.com/ItsLastDay/FindMyShoes/blob/master/docs/assessment/criteria.md).  
+Чтобы внести свои оценки в файл, сделайте pull request.
 
 
 
-
-### Кожаные сапоги высокие для женщин  
-http://www.top-shop.ru/product/689174-burlesco-h26-cvet-seryy-belyy/  
-Оценка релевантности:   
-Оценка соответствия фильтрам:   
-  
-http://www.top-shop.ru/product/689178-burlesco-h26-cvet-siniy-fioletovyy/  
-Оценка релевантности:   
-Оценка соответствия фильтрам:   
-  
-http://www.ozon.ru/context/detail/id/142209888/  
-Оценка релевантности:   
-Оценка соответствия фильтрам:   
-  
-http://www.ozon.ru/context/detail/id/139957392/  
-Оценка релевантности:   
-Оценка соответствия фильтрам:   
-  
-http://www.ozon.ru/context/detail/id/139957389/  
-Оценка релевантности:   
-Оценка соответствия фильтрам:   
-  
-http://www.ozon.ru/context/detail/id/139957384/  
-Оценка релевантности:   
-Оценка соответствия фильтрам:   
-  
-http://www.ozon.ru/context/detail/id/139957538/  
-Оценка релевантности:   
-Оценка соответствия фильтрам:   
-  
-http://www.ozon.ru/context/detail/id/139957393/  
-Оценка релевантности:   
-Оценка соответствия фильтрам:   
-  
-http://www.ozon.ru/context/detail/id/142209889/  
-Оценка релевантности:   
-Оценка соответствия фильтрам:   
-  
-http://www.ozon.ru/context/detail/id/139957391/  
-Оценка релевантности:   
-Оценка соответствия фильтрам:   
-  
-  
-  
-  
 
 ### Синие зимние ботфорты чулком замшевые  
 http://www.asos.com/ru/puma/puma-x-fenty/prd/8985591?clr=%d1%81%d0%b8%d0%bd%d0%b8%d0%b9&amp;cid=4172  
@@ -92,6 +48,51 @@ http://www.ozon.ru/context/detail/id/135068026/
 Оценка соответствия фильтрам:   
   
 http://www.ozon.ru/context/detail/id/135068024/  
+Оценка релевантности:   
+Оценка соответствия фильтрам:   
+  
+  
+  
+  
+
+### Ботильоны цвета металик на устойчивом каблуке  
+http://www.ozon.ru/context/detail/id/142809553/  
+Оценка релевантности:   
+Оценка соответствия фильтрам:   
+  
+http://www.ozon.ru/context/detail/id/142809548/  
+Оценка релевантности:   
+Оценка соответствия фильтрам:   
+  
+http://www.ozon.ru/context/detail/id/142809554/  
+Оценка релевантности:   
+Оценка соответствия фильтрам:   
+  
+http://www.ozon.ru/context/detail/id/142809546/  
+Оценка релевантности:   
+Оценка соответствия фильтрам:   
+  
+http://www.ozon.ru/context/detail/id/142809547/  
+Оценка релевантности:   
+Оценка соответствия фильтрам:   
+  
+http://www.ozon.ru/context/detail/id/142809552/  
+Оценка релевантности:   
+Оценка соответствия фильтрам:   
+  
+http://www.ozon.ru/context/detail/id/142809563/  
+Оценка релевантности:   
+Оценка соответствия фильтрам:   
+  
+http://www.ozon.ru/context/detail/id/142809564/  
+Оценка релевантности:   
+Оценка соответствия фильтрам:   
+  
+http://www.ozon.ru/context/detail/id/142809565/  
+Оценка релевантности:   
+Оценка соответствия фильтрам:   
+  
+https://www.ecco-shoes.ru/catalog/350943/51052/  
 Оценка релевантности:   
 Оценка соответствия фильтрам:   
   
@@ -189,44 +190,44 @@ https://www.wildberries.ru/catalog/3779471/detail.aspx
   
   
 
-### Красные туфли на платформе 10 см летние  
-https://www.lamoda.ru/p/ma382awwrp26/shoes-mallanee-tufli/  
+### Летние туфли без каблука 37 размера  
+https://www.bonprix.ru/produkty/slipery-chernyj-954548/  
 Оценка релевантности:   
 Оценка соответствия фильтрам:   
   
-https://www.lamoda.ru/p/su013awtlm61/shoes-supermode-tufli/  
+https://www.bonprix.ru/produkty/tufli-konyachnyj-949869/  
 Оценка релевантности:   
 Оценка соответствия фильтрам:   
   
-https://www.lamoda.ru/p/sw010awrwj95/shoes-sweetshoes-tufli/  
+https://www.bonprix.ru/produkty/tufli-telesnyj-969983/  
 Оценка релевантности:   
 Оценка соответствия фильтрам:   
   
-https://www.lamoda.ru/p/ta171awozo70/shoes-tamaris-tufli/  
+https://www.bonprix.ru/produkty/tufli-seryj-946553/  
 Оценка релевантности:   
 Оценка соответствия фильтрам:   
   
-https://www.lamoda.ru/p/be058awqtj24/shoes-bellamica-kedy/  
+https://www.bonprix.ru/produkty/tufli-chernyj-945475/  
 Оценка релевантности:   
 Оценка соответствия фильтрам:   
   
-https://www.lamoda.ru/p/ma129awtbo95/shoes-madaemme-bosonozhki/  
+https://www.bonprix.ru/produkty/krossovki-belyjchernyj-960648/  
 Оценка релевантности:   
 Оценка соответствия фильтрам:   
   
-https://www.lamoda.ru/p/id005awtov37/shoes-idealshoes-bosonozhki/  
+https://www.bonprix.ru/produkty/udobnye-kozhanye-tufli-bezhevyj-958994/  
 Оценка релевантности:   
 Оценка соответствия фильтрам:   
   
-https://www.lamoda.ru/p/ro042awtnz41/shoes-roberto-sandalii/  
+https://www.bonprix.ru/produkty/udobnye-kozhanye-tufli-seryj-933918/  
 Оценка релевантности:   
 Оценка соответствия фильтрам:   
   
-https://my-shop.ru/shop/products/2160859.html  
+https://www.bonprix.ru/produkty/tufli-chernyj-955231/#image  
 Оценка релевантности:   
 Оценка соответствия фильтрам:   
   
-https://www.bonprix.ru/produkty/tufli-krasnyj-971149/  
+https://www.wildberries.ru/catalog/4344485/detail.aspx  
 Оценка релевантности:   
 Оценка соответствия фильтрам:   
   
