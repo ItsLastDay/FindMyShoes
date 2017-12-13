@@ -143,7 +143,10 @@ class AbstractDataExtractor:
             return
 
         data = self._get_data_by_selector(selector)
-        data = postprocess_func(data)
+        try:
+            data = postprocess_func(data)
+        except:
+            return
         if data:
             self._result_dict_ref[key_name] = data
 
