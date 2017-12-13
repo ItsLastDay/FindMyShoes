@@ -45,10 +45,10 @@ for person in ['Mike', 'Andrey', 'Ivan', 'Vlad', 'Anya']:
             all_tasks.pop(-1)
             tasks_for_this_person.add(next_task[0])
 
-            print(next_task[0], file=person_task)
+            print('### {}  '.format(next_task[0]), file=person_task)
             for doc in next_task[1]:
-                print(doc, file=person_task)
-                print('Оценка релевантности: ', file=person_task)
-                print('Оценка соответствия фильтрам: ', file=person_task)
-                print('', file=person_task)
-            print('\n\n\n', file=person_task)
+                print(doc + '  ', file=person_task)
+                print('Оценка релевантности:   ', file=person_task)
+                print('Оценка соответствия фильтрам:   ', file=person_task)
+                print('  ', file=person_task)
+            print('  \n  \n  \n', file=person_task)
