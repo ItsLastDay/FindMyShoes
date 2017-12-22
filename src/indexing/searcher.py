@@ -23,6 +23,27 @@ def make_colors_dict(color_set: [str]):
     return res
 
 
+class DocumentRank:
+    def __init__(self, doc, rank):
+        self._doc = doc
+        self._rank = rank
+
+    def __eq__(self, other: 'DocumentRank'):
+        return self._rank == other._rank and self.site == other.site
+
+    def __hash__(self):
+        return hash(self._rank) ^ hash(self.site)
+
+    def get(self):
+        return self._doc, self._rank
+
+    @property
+    def site(self):
+        path = self._doc.path
+        i = path.find('__')
+        return path[:i]
+
+
 class QueryProcessor:
     IDF_SMOOTH = 0.5
 
@@ -160,6 +181,10 @@ class QueryProcessor:
                 ranked_docs[i] = (ranked_docs[i][0], ranked_docs[i][1] * 2)
         return list(filter(lambda x: x[0].url in good_urls, ranked_docs))
 
+    def unique_documents(selfs, ranked_docs):
+        s = set(map(lambda dr: DocumentRank(*dr), ranked_docs))
+        return list(map(lambda dr: dr.get(), s))
+
     def get_coincidence_string(self, doc: DocumentEntry, terms: [str], neighbors=2) -> str:
         objects = list(self.dbfind({'url': doc.url}))
         if len(objects) == 0:
@@ -182,12 +207,14 @@ class QueryProcessor:
         terms = self.preprocess(query_string)
         documents_ranks = self.ranked_documents(terms)
         filtered_docs = self.filtered_documents(terms, documents_ranks)
+        unique_documents = self.unique_documents(filtered_docs)
+        n = len(unique_documents)
         start = (page - 1) * limit
         stop = page * limit
-        best_documents_ranks = sorted(filtered_docs,
+        best_documents_ranks = sorted(unique_documents,
                                       key=lambda dr: dr[1], reverse=True)[start:stop]
         best_documents_coincidence = [self.get_coincidence_string(dr[0], terms) for dr in best_documents_ranks]
-        return len(filtered_docs), best_documents_ranks, best_documents_coincidence
+        return n, best_documents_ranks, best_documents_coincidence
 
 
 if __name__ == '__main__':
