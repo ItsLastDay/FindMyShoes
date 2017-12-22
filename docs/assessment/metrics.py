@@ -88,8 +88,9 @@ def mAP(results: [MergedResult], get_grades=get_relevances, is_relevant_func=is_
         ap_sum = 0
         relevant_count = 0
         for i, r in enumerate(object_results):
-            if is_relevant_func(r):
-                relevant_count += 1
+            if not is_relevant_func(r):
+                continue
+            relevant_count += 1
             ap_sum += relevant_count / (i + 1)
         return ap_sum / ndocuments
 
@@ -143,7 +144,8 @@ def do_metrics(merged, functions: list, functions_names=None):
     if functions_names is not None:
         print('query & ' + ' & '.join(functions_names) + ' \\\\')
         print('\\hline')
-    for iquery, results in enumerate(sorted(merged.values())):
+    for iquery, items in enumerate(sorted(merged.items())):
+        query, results = items
         metrics = list(map(lambda f: f(results), functions))
         full_metrics.append(metrics)
         print_metrics(metrics, str(1 + iquery))
@@ -166,7 +168,6 @@ if __name__ == '__main__':
 
     print('### relevance ###')
     do_metrics(merged, [rr, mAP, ndcg, err_relevance, p10], ['RR', 'MAP', 'NDCG', 'ERR', 'P@10'])
-
 
     print('\n### filters ###')
     is_relevant_filter = lambda x: x > 0.5
