@@ -39,7 +39,7 @@
             {{result.name}}
             <p ng-if="is_empty(result.name)">{{result.url}}</p>
         </a></td>
-    <td class="col-md-2"><img style="max-height: 100%; max-width: 100%" src="{{result.image}}" title="Доступные размеры: {{result.sizes}}"/></td>
+    <td class="col-md-2"><img style="max-height: 200px; max-width: 200px" src="{{result.image}}" title="Доступные размеры: {{result.sizes}}"/></td>
     <td class="col-md-5" ng-bind-html="results[1][$index].coincidence"></td>
     <td class="col-md-1">{{result.price}}</td>
     <td class="col-md-6">{{result.confidence}}</td>
